@@ -1,0 +1,1 @@
+Dallas and I designed this database last semester for our Database course class. The modelling was done in Erwin. Not a final version but very close to it.

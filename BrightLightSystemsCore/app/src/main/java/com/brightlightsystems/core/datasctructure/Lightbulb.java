@@ -142,11 +142,14 @@ public class Lightbulb
         assert(_state       != null);
     }
 
+    /**
+     * Defines a state of the lightbulb.
+     */
     public enum States
     {
-        ON,
-        OFF,
-        DISCONNECTED
+        ON,                 // lightbulb is turned on
+        OFF,                // lightbulb is turned off
+        DISCONNECTED        // lightbulb is disconnected
     }
 
 }

@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Class describes a single theme. A theme is on a very
+ * Class describes a single theme. A theme on its very
  * basic level is a collection of light bulbs with assigned
  * traits.A theme can also contain another themes or
  * collection of themes and light bubs.

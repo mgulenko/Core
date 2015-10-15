@@ -50,4 +50,6 @@ public abstract class Publisher
             throw new IllegalArgumentException();
         Dispatcher.getInstance().dispatch(message);
     }
+
+    /******************** end of class********************************/
 }

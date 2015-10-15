@@ -24,4 +24,5 @@ public abstract class Subscriber
         Dispatcher.getInstance().unsubscribe(messageId, subscribable);
     }
 
+    /******************** end of class********************************/
 }

@@ -37,7 +37,7 @@ public class Theme extends HueElement
      * Id that will be used for the next theme. IMPORTANT: value must be in sync with the database.
      * TODO: Add mechanism that validates synchronization
      */
-    private static int NEXT_THEME_ID = 0;
+    private static int NEXT_THEME_ID = 1;
 
     /**
      * Collection of bulbs with traits.
@@ -336,11 +336,16 @@ public class Theme extends HueElement
      */
     public void updateBulbs(Map<Lightbulb,Trait> bulbs)
     {
+        if(bulbs == null)
+            return;
        addBulbs(bulbs);
     }
 
     public void updateThemes(List<Theme> themes)
     {
+        if(themes == null)
+            return;
+
         assert(_collection != null);
         for(Theme t:themes)
         {
@@ -369,45 +374,22 @@ public class Theme extends HueElement
     //////////////////////////OVERRIDES/////////////////////////////////////////////////////////////
 
     @Override
-    public <T>void onNotify(SystemMessage<T> message)
-    {
-        int id = message.getId();
-        switch(id)
-        {
-            case Publisher.UPDATE_THEME:
-                Theme theme = (Theme) message.getAttachment();
-                if(theme == null)
-                    return;
-                this.updateBulbs(theme.getBulbs());
-                this.updateThemes(getThemes());
-                break;
-            case Publisher.ACTIVATE_THEME:
-                activate();
-                break;
-            case Publisher.DEACTIVATE_THEME:
-                deactivate();
-                break;
-            case Publisher.DELETE_THEME:
-                unsubscribe();
-                break;
-        }
-    }
-
-    @Override
     public void subscribe()
     {
-        Subscriber.subscribe(this, Publisher.UPDATE_THEME);
-        Subscriber.subscribe(this, Publisher.ACTIVATE_THEME);
-        Subscriber.subscribe(this, Publisher.DEACTIVATE_THEME);
-        Subscriber.subscribe(this, Publisher.DELETE_THEME);
+
     }
 
     @Override
     public  void unsubscribe()
     {
-        Subscriber.unsubscribe(this, Publisher.UPDATE_THEME);
-        Subscriber.unsubscribe(this, Publisher.ACTIVATE_THEME);
-        Subscriber.unsubscribe(this, Publisher.DEACTIVATE_THEME);
-        Subscriber.unsubscribe(this, Publisher.DELETE_THEME);
+
     }
+
+    @Override
+    public <T>void onNotify(SystemMessage<T> message)
+    {
+
+    }
+
+    /******************** end of class********************************/
 }

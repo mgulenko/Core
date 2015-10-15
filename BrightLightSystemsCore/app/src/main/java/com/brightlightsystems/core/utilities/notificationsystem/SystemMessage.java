@@ -45,9 +45,7 @@ public class SystemMessage <T>
     }
 
 
-
-
-
+    /******************** end of class********************************/
 }
 
 

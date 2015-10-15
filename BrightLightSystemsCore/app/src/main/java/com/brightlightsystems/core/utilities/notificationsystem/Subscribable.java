@@ -21,4 +21,6 @@ public interface Subscribable
      * @param message - received message. Never null.
      */
     <T> void onNotify(SystemMessage<T> message);
+
+    /******************** end of class********************************/
 }

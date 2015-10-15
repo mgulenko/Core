@@ -1,19 +1,22 @@
 package com.brightlightsystems.core.datasctructure;
 
+import com.brightlightsystems.core.utilities.notificationsystem.SystemMessage;
+
 /**
  * This class describes a single Phillips Hue light bulb.
  * @author Michael Gulenko Created on 10/7/2015.
  */
-public class Lightbulb
+public class Lightbulb extends HueElement
 {
+    /**
+     * Id that will be used for the next bulb. IMPORTANT: value must be in sync with the database.
+     * TODO: Add mechanism that validates synchronization
+     */
+    private static int NEXT_BULB_ID = 1;
     /**
      * Factory name of the lightbulb. Can't be null.
      */
     private final String _factoryName;
-    /**
-     * User defined name of the lightbulb. Can't be null.
-     */
-    private String       _name;
     /**
      * Current trait of the lightbulb.
      */
@@ -22,6 +25,18 @@ public class Lightbulb
      * Flag that indicates current state of the lightbulb
      */
     private States      _state;
+
+    /**
+     * Sets next bulb id.
+     * @param nextId next id
+     */
+    public static void nextBulbIdInit(int nextId)
+    {
+        assert (nextId > NEXT_BULB_ID);
+        if(nextId < 1)
+            throw new IllegalArgumentException("Cant initialize next bulb id counter");
+        NEXT_BULB_ID = nextId;
+    }
 
     /**
      * Constructs a lightbulb with specified parameters
@@ -33,11 +48,11 @@ public class Lightbulb
      */
     public Lightbulb(String factoryName, String name, Trait trait, States state)
     {
-        if(factoryName == null || name == null || state == null)
+        super(NEXT_BULB_ID, name);
+        if(factoryName == null || state == null)
             throw new IllegalArgumentException("Can't create a lightbulb.One ore more parameters is null");
 
         _factoryName = factoryName;
-        _name = name;
         _state = state;
         if(trait == null)
             _trait = Trait.Default_Trait;
@@ -66,15 +81,6 @@ public class Lightbulb
     }
 
     /**
-     * Get a user defined name of the bulb
-     * @return user defined name of the bulb.
-     */
-    public String getName()
-    {
-        return _name;
-    }
-
-    /**
      * Get current state of the bulb
      * @return state of the bulb
      */
@@ -90,20 +96,6 @@ public class Lightbulb
     public Trait getTrait()
     {
         return _trait;
-    }
-
-    /**
-     * Gives a new name for the lightbulb
-     * @param newName new name for te lightbulb.
-     * @throws IllegalArgumentException if newName is null
-     */
-    public void setName(String newName)
-    {
-        if(newName == null)
-            throw new IllegalArgumentException("Can't change name. New value is null");
-
-        _name = newName;
-        repOk();
     }
 
     /**
@@ -131,16 +123,32 @@ public class Lightbulb
         _state = state;
     }
 
+    @Override
+    public void subscribe() {
+
+    }
+
+    @Override
+    public void unsubscribe() {
+
+    }
+
+    @Override
+    public <T> void onNotify(SystemMessage<T> message) {
+
+    }
+
     /**
      * Validate class representation
      */
     private void repOk()
     {
         assert(_factoryName != null);
-        assert(_name        != null);
         assert(_trait       != null);
         assert(_state       != null);
     }
+
+
 
     /**
      * Defines a state of the lightbulb.
@@ -152,4 +160,5 @@ public class Lightbulb
         DISCONNECTED        // lightbulb is disconnected
     }
 
+    /******************** end of class********************************/
 }

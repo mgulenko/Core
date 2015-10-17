@@ -1,4 +1,4 @@
-package com.brightlightsystems.core.datasctructure;
+package com.brightlightsystems.core.datastructure;
 
 import com.brightlightsystems.core.utilities.notificationsystem.SystemMessage;
 
@@ -18,7 +18,7 @@ public class Lightbulb extends HueElement
      */
     private final String _factoryName;
     /**
-     * Current trait of the lightbulb.
+     * Current trait of the lightbulb. Can't be null.
      */
     private Trait        _trait;
     /**

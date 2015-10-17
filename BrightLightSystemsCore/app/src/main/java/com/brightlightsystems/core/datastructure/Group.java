@@ -1,4 +1,4 @@
-package com.brightlightsystems.core.datasctructure;
+package com.brightlightsystems.core.datastructure;
 
 import com.brightlightsystems.core.utilities.notificationsystem.SystemMessage;
 
@@ -30,11 +30,12 @@ public class Group extends HueElement
     private static int NEXT_GROUP_ID = 1;
 
     /**
-     * Set of the light bulbs that are stored in this group. Can't contain dupes
+     * Set of the light bulbs that are stored in this group. Can't contain dupes.
+     * Can't be null, can't contains nulls
      */
     Set<Lightbulb> _bulbs;
     /**
-     * List of groups that represent this group
+     * List of groups that represent this group. Can't be null, can't contains nulls
      */
     List<Group> _groups;
 
@@ -72,7 +73,7 @@ public class Group extends HueElement
      * @param bulbs set of light bulbs.
      * @throws IllegalArgumentException if bulbs == null or contain nulls
      */
-    public Group(String name, Set<Lightbulb> bulbs)
+    public Group(String name, LinkedHashSet<Lightbulb> bulbs)
     {
         super(NEXT_GROUP_ID, name);
         if(bulbs == null || bulbs.contains(null))
@@ -113,7 +114,7 @@ public class Group extends HueElement
      * @throw IllegalArgumentException if groups or bulbs are null or contain nulls
      */
 
-    public Group(String name, Set<Lightbulb> bulbs, List<Group> groups)
+    public Group(String name, LinkedHashSet<Lightbulb> bulbs, List<Group> groups)
     {
         super(NEXT_GROUP_ID, name);
         if(groups == null || groups.contains(null))
@@ -148,7 +149,7 @@ public class Group extends HueElement
      * @return true on succes, false otherwise
      * @throws IllegalArgumentException if bulbs is null or contain nulls
      */
-    public boolean addBulbs(Set<Lightbulb> bulbs)
+    public boolean addBulbs(LinkedHashSet<Lightbulb> bulbs)
     {
         if(bulbs == null || bulbs.contains(null))
             throw new IllegalArgumentException("Can't add bulbs. Parameter is invalid.");
@@ -278,7 +279,7 @@ public class Group extends HueElement
      * @param bulbs new list opf groups
      * @throws IllegalArgumentException if new set contains nulls
      */
-    public void updateBulbs(Set<Lightbulb>bulbs)
+    public void updateBulbs(LinkedHashSet<Lightbulb>bulbs)
     {
         if(bulbs == null)
             return;

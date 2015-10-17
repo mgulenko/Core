@@ -1,4 +1,4 @@
-package com.brightlightsystems.core.datasctructure;
+package com.brightlightsystems.core.datastructure;
 
 
 import com.brightlightsystems.core.utilities.notificationsystem.Subscribable;

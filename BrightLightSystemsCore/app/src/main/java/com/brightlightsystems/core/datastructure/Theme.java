@@ -1,8 +1,6 @@
-package com.brightlightsystems.core.datasctructure;
+package com.brightlightsystems.core.datastructure;
 
 
-import com.brightlightsystems.core.utilities.notificationsystem.Publisher;
-import com.brightlightsystems.core.utilities.notificationsystem.Subscriber;
 import com.brightlightsystems.core.utilities.notificationsystem.SystemMessage;
 
 import java.util.ArrayList;
@@ -40,12 +38,13 @@ public class Theme extends HueElement
     private static int NEXT_THEME_ID = 1;
 
     /**
-     * Collection of bulbs with traits.
+     * Collection of bulbs with traits.Can't be null, can't contains nulls
      */
     private Map<Lightbulb,Trait> _bulbs;
     /**
-     * Collection of themes.Note that this datastructure allows dupe entries, thus it is
+     * Collection of themes.Note that this data structure allows dupe entries, thus it is
      * essential to implement a mechanism that prevents adding dupe entries from the Front End.
+     * Can't be null, can't contains nulls.
      */
     private List<Theme> _collection;
     /**

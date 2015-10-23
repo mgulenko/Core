@@ -21,6 +21,8 @@ public class Trait
     private Color _color;
     /**Brightness of a light bulb. Can't be < 0*/
     private int _brightness;
+    /**Saturation of the light bulb*/
+    private int _saturation;
 
 
     /**

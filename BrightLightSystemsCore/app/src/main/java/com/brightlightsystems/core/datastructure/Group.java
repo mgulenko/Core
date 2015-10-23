@@ -334,8 +334,12 @@ public class Group extends HueElement
     }
 
     @Override
-    public <T> void onNotify(SystemMessage<T> message) {
+    public <T> void onNotify(SystemMessage<T> message)
+    {
+        switch(message.getId())
+        {
 
+        }
     }
 
     /******************** end of class********************************/

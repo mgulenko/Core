@@ -10,18 +10,18 @@ import com.brightlightsystems.core.utilities.notificationsystem.SystemMessage;
 /**
  * Created by Michael on 10/20/2015.
  */
-public class CoreDatabase extends SQLiteOpenHelper implements Subscribable
+public class Database extends SQLiteOpenHelper implements Subscribable
 {
     /**Holds the version of the database*/
     public static final int DATABASE_VERSION = 1;
     /**Holds the name of the database*/
-    public static final String DATABASE_NAME = "CoreDataBase";
+    public static final String DATABASE_NAME = "core_data_base";
 
     /**
      * Construct a core database with specified context.
      * @param context context of the application.
      */
-    public CoreDatabase(Context context) {
+    public Database(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 

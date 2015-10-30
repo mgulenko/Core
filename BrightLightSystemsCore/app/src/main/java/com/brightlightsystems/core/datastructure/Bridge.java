@@ -1,6 +1,5 @@
 package com.brightlightsystems.core.datastructure;
 
-import com.brightlightsystems.core.utilities.annotations.Gulenko;
 import com.brightlightsystems.core.utilities.notificationsystem.SystemMessage;
 
 import java.util.LinkedHashSet;

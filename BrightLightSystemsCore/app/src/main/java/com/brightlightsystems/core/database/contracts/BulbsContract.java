@@ -1,4 +1,4 @@
-package com.brightlightsystems.core.database;
+package com.brightlightsystems.core.database.contracts;
 
 import android.provider.BaseColumns;
 

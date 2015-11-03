@@ -75,7 +75,7 @@ class Dispatcher
     {
         for(Subscribable s:_subscribers.get(message.ID))
         {
-           s.onNotify(message);
+           s.onRecieve(message);
         }
     }
 

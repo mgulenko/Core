@@ -8,12 +8,15 @@ package com.brightlightsystems.core.utilities.notificationsystem;
  */
 public class SystemMessage <T>
 {
+
     /**
      * Unique message identifier. Can't be < 1.
      */
-    public  final int ID;
+    public final int ID;
+    /**
+     * Message attachment
+     */
     private T _attachment;
-
 
     /**
      * Constructs SystemMessage object with specified messgae identifier

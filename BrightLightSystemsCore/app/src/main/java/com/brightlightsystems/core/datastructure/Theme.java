@@ -385,7 +385,7 @@ public class Theme extends HueElement
     }
 
     @Override
-    public <T>void onNotify(SystemMessage<T> message)
+    public <T> boolean onRecieve(SystemMessage<T> message)
     {
 
     }

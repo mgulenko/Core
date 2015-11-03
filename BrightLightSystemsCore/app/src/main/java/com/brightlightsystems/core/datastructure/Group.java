@@ -1,10 +1,10 @@
 package com.brightlightsystems.core.datastructure;
 
-import com.brightlightsystems.core.utilities.notificationsystem.SystemMessage;
-
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -33,7 +33,7 @@ public class Group extends HueElement
      * Set of the light bulbs that are stored in this group. Can't contain dupes.
      * Can't be null, can't contains nulls
      */
-    Set<Lightbulb> _bulbs;
+    private Map<Integer,Lightbulb> _bulbs;
     /**
      * List of groups that represent this group. Can't be null, can't contains nulls
      */
@@ -58,11 +58,10 @@ public class Group extends HueElement
     public Group(String name)
     {
         super(NEXT_GROUP_ID, name);
-        _bulbs  = new LinkedHashSet<>(INIT_BULB_COUNT);
+        _bulbs  = new LinkedHashMap<>(INIT_BULB_COUNT);
         _groups = new ArrayList<>(INIT_GROUP_COUNT);
         assert(_bulbs  != null);
         assert(_groups != null);
-        subscribe();
         NEXT_GROUP_ID ++;
 
     }
@@ -73,16 +72,16 @@ public class Group extends HueElement
      * @param bulbs set of light bulbs.
      * @throws IllegalArgumentException if bulbs == null or contain nulls
      */
-    public Group(String name, LinkedHashSet<Lightbulb> bulbs)
+    public Group(String name, Set<Lightbulb> bulbs)
     {
         super(NEXT_GROUP_ID, name);
         if(bulbs == null || bulbs.contains(null))
             throw new IllegalArgumentException("Can't create a group.Wrong parameter.");
+
         _bulbs  = bulbs;
         _groups = new ArrayList<>(INIT_GROUP_COUNT);
         assert(_bulbs  != null);
         assert(_groups != null);
-        subscribe();
         NEXT_GROUP_ID ++;
     }
 
@@ -102,7 +101,6 @@ public class Group extends HueElement
 
         assert(_bulbs  != null);
         assert(_groups != null);
-        subscribe();
         NEXT_GROUP_ID ++;
     }
 
@@ -125,7 +123,6 @@ public class Group extends HueElement
         _groups = groups;
         assert(_bulbs  != null);
         assert(_groups != null);
-        subscribe();
         NEXT_GROUP_ID ++;
     }
 
@@ -323,24 +320,6 @@ public class Group extends HueElement
         return total;
     }
 
-    @Override
-    public void subscribe() {
-
-    }
-
-    @Override
-    public void unsubscribe() {
-
-    }
-
-    @Override
-    public <T> void onNotify(SystemMessage<T> message)
-    {
-        switch(message.getId())
-        {
-
-        }
-    }
 
     /******************** end of class********************************/
 }

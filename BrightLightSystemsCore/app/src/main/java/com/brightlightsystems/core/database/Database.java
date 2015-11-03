@@ -48,7 +48,7 @@ public class Database extends SQLiteOpenHelper implements Subscribable
     }
 
     @Override
-    public <T> void onNotify(SystemMessage<T> message)
+    public <T> boolean onRecieve(SystemMessage<T> message)
     {
         switch (message.getId())
         {

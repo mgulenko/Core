@@ -38,6 +38,10 @@ public abstract class Publisher
 
     ///////////////////MODULES MESSAGE DEFINITIONS////////////////////////////
 
+    //////////////////////////////////////////////////////////////////////////
+
+    /**Indicates the message has been processed.*/
+    public static final int MESSAGE_PROCESSED            = 0x0001;
 
     /**
      * Method publishes specified message.

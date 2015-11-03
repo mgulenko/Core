@@ -1,9 +1,5 @@
 package com.brightlightsystems.core.datastructure;
 
-import android.graphics.Color;
-
-import java.text.DecimalFormat;
-
 /**
  * This class describes a single trait of a lightbulb.
  * Trait is a collection of physical characteristics such as
@@ -124,16 +120,19 @@ public class Trait
     public class Color extends android.graphics.Color
     {
         /**Default red component value */
-        public static final int RED   = 0;
+        public static final int DEF_RED_COMPONENT = 0;
         /**Default green component value */
-        public static final int GREEN = 0;
+        public static final int DEF_GREEN_COMPONENT = 0;
         /**Default blue component value */
-        public static final int BLUE  = 0;
+        public static final int DEF_BLUE_COMPONENT = 0;
         /**Default transparency value */
         public static final int DEF_TRANSPARENCY  = 100;
 
+        /**Red component of the color*/
         private int _red;
+        /**Blue component of the color*/
         private int _blue;
+        /**Green component of he color*/
         private int _green;
         /**Color transparency*/
         private int _transparency;
@@ -141,13 +140,12 @@ public class Trait
 
         /**
          * Constructs color with default settings
-
          */
         public Color()
         {
-            _red   = RED;
-            _green = GREEN;
-            _blue  = BLUE;
+            _red   = DEF_RED_COMPONENT;
+            _green = DEF_GREEN_COMPONENT;
+            _blue  = DEF_BLUE_COMPONENT;
             _transparency = DEF_TRANSPARENCY;
             repOk();
         }
@@ -161,9 +159,9 @@ public class Trait
          */
         public Color(int r, int g, int b)
         {
-            _red   = (r > -1) ? r: RED;
-            _green = (g > -1) ? g: GREEN;
-            _blue  = (b > -1) ? b: BLUE;
+            _red   = (r > -1) ? r: DEF_RED_COMPONENT;
+            _green = (g > -1) ? g: DEF_GREEN_COMPONENT;
+            _blue  = (b > -1) ? b: DEF_BLUE_COMPONENT;
             _transparency = DEF_TRANSPARENCY;
             repOk();
         }
@@ -229,7 +227,7 @@ public class Trait
          *            If < 0, then it'll be substituted with the default.
          */
         public void setRed(int r) {
-            _red   = (r > -1) ? r: RED;
+            _red   = (r > -1) ? r: DEF_RED_COMPONENT;
         }
 
         /**
@@ -238,7 +236,7 @@ public class Trait
          *            If < 0, then it'll be substituted with the default.
          */
         public void setBlue(int b) {
-            _blue  = (b > -1) ? b: BLUE;
+            _blue  = (b > -1) ? b: DEF_BLUE_COMPONENT;
         }
 
         /**
@@ -247,7 +245,7 @@ public class Trait
          *            If < 0, then it'll be substituted with the default.
          */
         public void setGreen(int g) {
-            _green = (g > -1) ? g: GREEN;
+            _green = (g > -1) ? g: DEF_GREEN_COMPONENT;
         }
 
         /**

@@ -1,14 +1,11 @@
 package com.brightlightsystems.core.datastructure;
 
 
-import com.brightlightsystems.core.utilities.notificationsystem.Subscribable;
-
-
 /**
  * Abstract class that represents basic Hue element.
  * @author Michael Gulenko. Created on 10/07/2015
  */
-public abstract class HueElement implements Subscribable
+public abstract class HueElement
 {
     /**
      * Unique identifier > 0

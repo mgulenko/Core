@@ -268,7 +268,10 @@ public class MultiMap<K,V>
         return _map.values();
     }
 
+    public  Map<K,V> setToLinkedMap()
+    {
+        return null;
+    }
     /******************** end of class********************************/
-
 }
 

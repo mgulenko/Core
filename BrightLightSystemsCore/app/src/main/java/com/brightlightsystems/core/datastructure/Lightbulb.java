@@ -123,20 +123,6 @@ public class Lightbulb extends HueElement
         _state = state;
     }
 
-    @Override
-    public void subscribe() {
-
-    }
-
-    @Override
-    public void unsubscribe() {
-
-    }
-
-    @Override
-    public <T> boolean onRecieve(SystemMessage<T> message) {
-
-    }
 
     /**
      * Validate class representation

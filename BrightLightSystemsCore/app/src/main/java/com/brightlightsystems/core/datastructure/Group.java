@@ -1,6 +1,9 @@
 package com.brightlightsystems.core.datastructure;
 
+import com.brightlightsystems.core.utilities.definitions.DataStructureHelper;
+
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -15,9 +18,9 @@ import java.util.Set;
 public class Group extends HueElement
 {
     /**
-     * Initial indicator how much elements to store in the _bulb s
+     * Initial indicator how much elements to store in the _bulbs
      */
-    private static final byte INIT_BULB_COUNT  = 32;
+    private static final byte INIT_BULB_COUNT  = 50;
     /**
      * Initial indicator how much elemnts to store in the _collection
      */
@@ -37,7 +40,7 @@ public class Group extends HueElement
     /**
      * List of groups that represent this group. Can't be null, can't contains nulls
      */
-    List<Group> _groups;
+    private Map<Integer,Group> _groups;
 
     /**
      * Sets next group id.
@@ -59,7 +62,7 @@ public class Group extends HueElement
     {
         super(NEXT_GROUP_ID, name);
         _bulbs  = new LinkedHashMap<>(INIT_BULB_COUNT);
-        _groups = new ArrayList<>(INIT_GROUP_COUNT);
+        _groups = new LinkedHashMap<>(INIT_GROUP_COUNT);
         assert(_bulbs  != null);
         assert(_groups != null);
         NEXT_GROUP_ID ++;
@@ -78,80 +81,54 @@ public class Group extends HueElement
         if(bulbs == null || bulbs.contains(null))
             throw new IllegalArgumentException("Can't create a group.Wrong parameter.");
 
-        _bulbs  = bulbs;
-        _groups = new ArrayList<>(INIT_GROUP_COUNT);
+        _bulbs  = (Map<Integer, Lightbulb>) DataStructureHelper.hueElementsToLinkedMap(bulbs);
+        _groups = new LinkedHashMap<>(INIT_GROUP_COUNT);
         assert(_bulbs  != null);
         assert(_groups != null);
         NEXT_GROUP_ID ++;
     }
 
-    /**
-     * Constructs a group with specified name and list of groups.
-     * @param name name for the group
-     * @param groups list of groups that are to be contained in new group
-     * @throw IllegalArgumentException if groups == null or contain nulls.
-     */
-    public Group(String name, List<Group> groups)
+
+
+    private void repOk()
     {
-        super(NEXT_GROUP_ID, name);
-        if(groups == null || groups.contains(null))
-            throw new IllegalArgumentException("Can't create a group.Wrong parameter.");
-        _bulbs  = new LinkedHashSet<>(INIT_BULB_COUNT);;
-        _groups = groups;
-
-        assert(_bulbs  != null);
-        assert(_groups != null);
-        NEXT_GROUP_ID ++;
+        assert(_bulbs != null);
+        assert(_bulbs.size() <= INIT_BULB_COUNT);
+        for(Map.Entry<Integer,Lightbulb> e: _bulbs.entrySet())
+        {
+            assert (e.getValue() != null);
+        }
+        for(Map.Entry<Integer,Group>e:_groups.entrySet())
+        {
+            assert(e.getValue() != null);
+        }
     }
 
-    /**
-     * Constructs a group with specified name, set of light bulbs. and the list of groups.
-     * @param name name for the group
-     * @param bulbs set of light bulbs.
-     * @param groups list of groups that are to be contained in new group
-     * @throw IllegalArgumentException if groups or bulbs are null or contain nulls
-     */
-
-    public Group(String name, LinkedHashSet<Lightbulb> bulbs, List<Group> groups)
-    {
-        super(NEXT_GROUP_ID, name);
-        if(groups == null || groups.contains(null))
-            throw new IllegalArgumentException("Can't create a group.Wrong parameter.");
-        if(bulbs == null || bulbs.contains(null))
-            throw new IllegalArgumentException("Can't create a group.Wrong parameter.");
-        _bulbs  = bulbs;
-        _groups = groups;
-        assert(_bulbs  != null);
-        assert(_groups != null);
-        NEXT_GROUP_ID ++;
-    }
 
     /**
      * Adds a new bulb to the set of light bulbs
      * @param bulb a light bulb to be added to the set
-     * @return true on success false otherwise.
      * @throws IllegalArgumentException if bulb is null.
      */
-    public boolean addBulb(Lightbulb bulb)
+    public void addBulb(Lightbulb bulb)
     {
         if(bulb == null)
             throw new IllegalArgumentException("Can't add bulb. Parameter is null.");
         assert(_bulbs != null);
-        return _bulbs.add(bulb);
+        _bulbs.put(bulb.getId(), bulb);
     }
 
     /**
      * Adds a set of the bulbs to the existing set.
      * @param bulbs set of light bulbs that is to be added
-     * @return true on succes, false otherwise
      * @throws IllegalArgumentException if bulbs is null or contain nulls
      */
-    public boolean addBulbs(LinkedHashSet<Lightbulb> bulbs)
+    public void addBulbs(Set<Lightbulb> bulbs)
     {
         if(bulbs == null || bulbs.contains(null))
             throw new IllegalArgumentException("Can't add bulbs. Parameter is invalid.");
         assert(_bulbs != null);
-        return _bulbs.addAll(bulbs);
+        _bulbs.putAll((Map<Integer, Lightbulb>) DataStructureHelper.hueElementsToLinkedMap(bulbs));
 
     }
 
@@ -159,87 +136,71 @@ public class Group extends HueElement
      * Adds new group to the list of groups. Insurance that the group was not already been
      * added has to be implemented on the front end.
      * @param group new group to be added into existing list.
-     * @return true on success, false otherwise
      * @throws IllegalArgumentException if group is null.
      */
-    public boolean addGroup(Group group)
+    public void addGroup(Group group)
     {
         if(group == null)
             throw new IllegalArgumentException("Can't add bulb. Parameter is null.");
         assert(_groups != null);
-        return _groups.add(group);
+        _groups.put(group.getId(), group);
     }
 
     /**
      * Adds a list of groups to the existing list. Insurance that the group was not already been
      * added has to be implemented on the front end.
      * @param groups new list of groups to be added into existing list.
-     * @return true on success, false otherwise
      * @throws IllegalArgumentException if group is null or contains null.
      */
-    public boolean addGroups(List<Group> groups)
+    public void addGroups(Set<Group> groups)
     {
         if(groups == null || groups.contains(null))
             throw new IllegalArgumentException("Can't create a group.Wrong parameter.");
         assert(_groups != null);
-        return _groups.addAll(groups);
+        _groups.putAll((Map< Integer, Group>) DataStructureHelper.hueElementsToLinkedMap(groups));
     }
 
     /**
      * Acquires a set of light bulbs in the group
      * @return set of light bulbs
      */
-    public Set<Lightbulb> getBulbs()
+    public Collection<Lightbulb> getBulbs()
     {
         assert (_bulbs != null);
-        return _bulbs;
+        return _bulbs.values();
     }
 
     /**
      * Acquires a list of groups within the group
      * @return list of groups
      */
-    public List<Group> getGroups()
+    public Collection<Group> getGroups()
     {
         assert(_groups != null);
-        return _groups;
+        return _groups.values();
     }
 
     /**
      * Removes a bulb from the group
-     * @param bulb bulb that needs to be removed
+     * @param bulbId bulb that needs to be removed
      * @return true on success, false otherwise
      */
-    public boolean removeBulb(Lightbulb bulb)
+    public void removeBulb(int bulbId)
     {
         assert(_bulbs != null);
-        return _bulbs.remove(bulb);
+         ;_bulbs.remove(bulbId);
     }
 
     /**
      * Removes group from the list of the groups
-     * @param group group that needs to be removed
-     * @return true on success, false otherwise
+     * @param groupId group that needs to be removed
      */
-    public boolean removeGroup(Group group)
+    public void removeGroup(int groupId)
     {
         assert(_groups != null);
-        return _groups.remove(group);
+        _groups.remove(groupId);
     }
 
-    /**
-     * Remove group, from specified position in the list.
-     * @param pos position to use for removing the group
-     * @return true on success, false otherwise
-     * @throws IllegalArgumentException if pos < 0 or >= size of the group
-     */
-    public Group removeGroup(int pos)
-    {
-        assert(_groups != null);
-        if(pos < 0 || pos >= _groups.size())
-            throw new IllegalArgumentException("Can't remove the group. Invalid parameter");
-        return _groups.remove(pos);
-    }
 
     /**
      * Removes all bulbs and groups from the group
@@ -255,11 +216,11 @@ public class Group extends HueElement
 
     /**
      * Updates group with specified list of  groups. All entries will be removed and replaced
-     * with new from the list. Does nothing if groups == null
-     * @param groups new list opf groups
+     * with new from the set. Does nothing if groups == null
+     * @param groups new set opf groups
      * @throws IllegalArgumentException if new list contains nulls
      */
-    public void updateGroup(List<Group>groups)
+    public void updateGroup(Set<Group>groups)
     {
         if(groups == null)
             return;
@@ -267,16 +228,16 @@ public class Group extends HueElement
             throw new IllegalArgumentException("Can't update the group. parameter contains nulls");
         assert(_groups != null);
         _groups.clear();
-        _groups = groups;
+        _groups = (Map<Integer, Group>) DataStructureHelper.hueElementsToLinkedMap(groups);
     }
 
     /**
      * Updates group with specified set of th. All entries will be removed and replaced
      * with new from the set. Does nothing if bulbs == null
-     * @param bulbs new list opf groups
+     * @param bulbs new set of groups
      * @throws IllegalArgumentException if new set contains nulls
      */
-    public void updateBulbs(LinkedHashSet<Lightbulb>bulbs)
+    public void updateBulbs(Set<Lightbulb>bulbs)
     {
         if(bulbs == null)
             return;
@@ -284,7 +245,7 @@ public class Group extends HueElement
             throw new IllegalArgumentException("Can't update bulbs. parameter contains nulls");
         assert(_bulbs != null);
         _bulbs.clear();
-        _bulbs = bulbs;
+        _bulbs = (Map<Integer, Lightbulb>) DataStructureHelper.hueElementsToLinkedMap(bulbs);
     }
 
     /**
@@ -298,7 +259,7 @@ public class Group extends HueElement
     }
 
     /**
-     * Returns a count of bulbs for this group
+     * Returns a count of bulbs within the group
      * @return bulb count.
      */
     public int bulbCount()
@@ -315,8 +276,8 @@ public class Group extends HueElement
     {
         assert(_groups != null);
         int total = bulbCount();
-        for(Group g:_groups)
-            total += g.bulbCount();
+        for(Map.Entry<Integer,Group> g:_groups.entrySet())
+            total += g.getValue().bulbCount();
         return total;
     }
 

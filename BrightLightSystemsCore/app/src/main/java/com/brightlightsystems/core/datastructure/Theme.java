@@ -5,6 +5,7 @@ import com.brightlightsystems.core.utilities.notificationsystem.SystemMessage;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,7 +26,7 @@ public class Theme extends HueElement
     /**
      * Initial indicator how much elements to store in the _bulb s
      */
-    private static final byte INIT_BULB_COUNT  = 32;
+    private static final byte INIT_BULB_COUNT  = 50;
     /**
      * Initial indicator how much elemnts to store in the _collection
      */
@@ -40,13 +41,13 @@ public class Theme extends HueElement
     /**
      * Collection of bulbs with traits.Can't be null, can't contains nulls
      */
-    private Map<Lightbulb,Trait> _bulbs;
+    private Map<Integer,Trait> _bulbs;
     /**
      * Collection of themes.Note that this data structure allows dupe entries, thus it is
      * essential to implement a mechanism that prevents adding dupe entries from the Front End.
      * Can't be null, can't contains nulls.
      */
-    private List<Theme> _collection;
+    private Map<Integer, Theme> _collection;
     /**
      * Flag that indicates if the current theme has been selected and applied to physical bulbs.
      */
@@ -66,21 +67,20 @@ public class Theme extends HueElement
 
     /**
      * Constructs an empty theme.
-     * @param name list of bulbs with assigned traits
+     * @param name collection of bulbs with assigned traits
      */
     public Theme(String name)
     {
         super(NEXT_THEME_ID, name);
-        _bulbs       = new HashMap<>(INIT_BULB_COUNT);
-        _collection  = new ArrayList<>(INIT_THEME_COUNT);
-        subscribe();
+        _bulbs       = new LinkedHashMap<>(INIT_BULB_COUNT);
+        _collection  = new LinkedHashMap<>(INIT_THEME_COUNT);
         NEXT_THEME_ID++;
     }
 
     /**
-     * Constructs a theme from specified id, name a and a list of bulbs with traits
+     * Constructs a theme from specified id, name a and a collection of bulbs with traits
      * @param name name of the theme
-     * @param bulbs list of bulbs with assigned traits.
+     * @param bulbs set of bulbs with assigned traits.
      * @throws IllegalArgumentException if bulbs == null or contains nulls
      */
     public Theme(String name, Map<Lightbulb, Trait> bulbs)
@@ -92,7 +92,6 @@ public class Theme extends HueElement
         _bulbs = bulbs;
         _collection  = new ArrayList<>(INIT_THEME_COUNT);
         _activated = true;
-        subscribe();
         NEXT_THEME_ID++;
 
     }
@@ -113,7 +112,6 @@ public class Theme extends HueElement
         _bulbs = theme._bulbs;
         _collection  = new ArrayList<>(INIT_THEME_COUNT);
         _activated = true;
-        subscribe();
         NEXT_THEME_ID++;
     }
 
@@ -135,7 +133,6 @@ public class Theme extends HueElement
         _collection = collection;
         _bulbs       = new HashMap<>(INIT_BULB_COUNT);
         _activated = true;
-        subscribe();
         NEXT_THEME_ID++;
     }
 
@@ -160,7 +157,6 @@ public class Theme extends HueElement
 
         _collection = collection;
         _activated = true;
-        subscribe();
         NEXT_THEME_ID ++;
     }
 
@@ -299,7 +295,7 @@ public class Theme extends HueElement
      * Get a collection of bulbs and traits
      * @return collection of bulbs and traits.
      */
-    public Map<Lightbulb,Trait> getBulbs()
+    publicMap<Integer,Trait> getBulbs()
     {
         return _bulbs;
     }
@@ -370,25 +366,6 @@ public class Theme extends HueElement
         return true;
     }
 
-    //////////////////////////OVERRIDES/////////////////////////////////////////////////////////////
-
-    @Override
-    public void subscribe()
-    {
-
-    }
-
-    @Override
-    public  void unsubscribe()
-    {
-
-    }
-
-    @Override
-    public <T> boolean onRecieve(SystemMessage<T> message)
-    {
-
-    }
 
     /******************** end of class********************************/
 }

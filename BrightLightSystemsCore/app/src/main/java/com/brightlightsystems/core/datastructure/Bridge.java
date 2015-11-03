@@ -1,24 +1,26 @@
 package com.brightlightsystems.core.datastructure;
+import com.brightlightsystems.core.utilities.definitions.DataStructureHelper;
 
-import com.brightlightsystems.core.utilities.notificationsystem.SystemMessage;
-
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
  * Class describes a Phillips Hue bridge device. The bridge can not control bulbs
- * that other bridge controls. TODO: implement mechanism to prevent that
+ * that other bridge controls.
  * The bridge can not control more than 50 bulbs at once.
  * @author Michael Gulenko Created on 10/16/2015.
  */
 public class Bridge extends HueElement
 {
-
+    /**Initial light bulb count. Since bridge can control only 50 of them thus init count is 50*/
     public static final byte INIT_BULB_COUNT = 50;
     /**Factory name of the bridge. Not an empty string. Database ensures that*/
     public final String _factoryName;
     /**Set of light bulbs they this bridge controls. Can't be null, can't contains nulls*/
-    private Set<Lightbulb> _bulbs;
+    private Map<Integer, Lightbulb> _bulbs;
 
 
     /**
@@ -32,7 +34,7 @@ public class Bridge extends HueElement
     {
         super(id, name);
         _factoryName = factoryName;
-        _bulbs = new LinkedHashSet<>(INIT_BULB_COUNT);
+        _bulbs = new LinkedHashMap<>(INIT_BULB_COUNT);
         repOk();
     }
 
@@ -45,13 +47,13 @@ public class Bridge extends HueElement
      * @throws IllegalArgumentException if bulbs == null or contains nulls or size is greater than
      *                                  INIT_BULB_COUNT.
      */
-    public Bridge(int id, String name, String factoryName, LinkedHashSet<Lightbulb> bulbs)
+    public Bridge(int id, String name, String factoryName, Set<Lightbulb> bulbs)
     {
         super(id, name);
         if(bulbs == null || bulbs.contains(null)||bulbs.size()>INIT_BULB_COUNT)
                 throw new IllegalArgumentException("Can't create bridge.Invalid parameter");
         _factoryName = factoryName;
-        _bulbs = bulbs;
+        _bulbs = (Map<Integer, Lightbulb>) DataStructureHelper.hueElementsToLinkedMap(bulbs);
         repOk();
     }
 
@@ -60,9 +62,9 @@ public class Bridge extends HueElement
      * Get a set of light bulbs that are controlled by this bridge
      * @return set of light bulbs
      */
-    public Set<Lightbulb> getBulbs()
+    public Collection<Lightbulb> getBulbs()
     {
-        return _bulbs;
+        return  _bulbs.values();
     }
 
     /**
@@ -78,22 +80,21 @@ public class Bridge extends HueElement
         if(bulb == null)
             throw new IllegalArgumentException("Can't add bulb. Parameter is null.");
         assert(_bulbs != null);
-        if(_bulbs.contains(bulb))
-            _bulbs.remove(bulb);
         if(_bulbs.size()==INIT_BULB_COUNT)
             return false;
-        return _bulbs.add(bulb);
+        _bulbs.put(bulb.getId(),bulb);
+        return true;
     }
 
     /**
      * Removes bulb from the set
-     * @param bulb bulb to be removed
+     * @param bulbId bulb to be removed
      * @return true on success, false otherwise
      */
-    public boolean removeBulb(Lightbulb bulb)
+    public Lightbulb removeBulb(int bulbId)
     {
         assert(_bulbs != null);
-        return _bulbs.remove(bulb);
+        return _bulbs.remove(bulbId);
     }
 
 
@@ -101,22 +102,11 @@ public class Bridge extends HueElement
     {
         assert(_bulbs != null);
         assert(_bulbs.size() <= INIT_BULB_COUNT);
-        assert(!_bulbs.contains(null));
+        for(Map.Entry<Integer,Lightbulb> e: _bulbs.entrySet())
+        {
+            assert (e.getValue() != null);
+        }
     }
 
-    @Override
-    public void subscribe() {
-
-    }
-
-    @Override
-    public void unsubscribe() {
-
-    }
-
-    @Override
-    public <T> boolean onRecieve(SystemMessage<T> message) {
-
-    }
-
+    /******************** end of the class********************************/
 }

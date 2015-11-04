@@ -34,6 +34,10 @@ public abstract class Publisher
      * Notifies that system needs to be deleted. FOREVER!!!
      */
     public static final int DELETE_THEME                = 0x0004;
+    /**
+     * Notifies that all complex themes have to delete a sub-theme. FOREVER!!!
+     * */
+    public static final int DELETE_SUBTHEME             = 0x0005;
 
 
     ///////////////////MODULES MESSAGE DEFINITIONS////////////////////////////

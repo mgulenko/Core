@@ -47,7 +47,6 @@ public class SystemMessage <T>
         return _attachment;
     }
 
-
     /******************** end of class********************************/
 }
 

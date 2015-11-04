@@ -2,6 +2,7 @@ package com.brightlightsystems.core.datastructure;
 
 
 import com.brightlightsystems.core.utilities.definitions.DataStructureHelper;
+import com.brightlightsystems.core.utilities.notificationsystem.Subscribable;
 import com.brightlightsystems.core.utilities.notificationsystem.SystemMessage;
 
 import java.util.ArrayList;
@@ -24,7 +25,7 @@ import java.util.Set;
  * TODO: Implement thread safe features
  * @author Micahel Gulenko
  */
-public class Theme extends HueElement
+public class Theme extends HueElement implements Subscribable
 {
     /**
      * Initial indicator how much elemnts to store in the _collection
@@ -300,6 +301,22 @@ public class Theme extends HueElement
         if(bulbs == null || bulbs.containsKey(null) || bulbs.containsValue(null))
             return false;
         return true;
+    }
+
+    @Override
+    public void subscribe()
+    {
+
+    }
+
+    @Override
+    public void unsubscribe() {
+
+    }
+
+    @Override
+    public <T> boolean onRecieve(SystemMessage<T> message) {
+        return false;
     }
 
 

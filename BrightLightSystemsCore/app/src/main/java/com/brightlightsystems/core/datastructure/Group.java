@@ -18,10 +18,6 @@ import java.util.Set;
 public class Group extends HueElement
 {
     /**
-     * Initial indicator how much elements to store in the _bulbs
-     */
-    private static final byte INIT_BULB_COUNT  = 50;
-    /**
      * Initial indicator how much elemnts to store in the _collection
      */
     private static final byte INIT_GROUP_COUNT = 16;
@@ -56,28 +52,28 @@ public class Group extends HueElement
 
     /**
      * Constructs an empty group with the specified name.
+     * @param id group id
      * @param name name of the group
      */
-    public Group(String name)
+    public Group(int id, String name)
     {
-        super(NEXT_GROUP_ID, name);
-        _bulbs  = new LinkedHashMap<>(INIT_BULB_COUNT);
+        super(id, name);
+        _bulbs  = new LinkedHashMap<>(Bridge.INIT_BULB_COUNT);
         _groups = new LinkedHashMap<>(INIT_GROUP_COUNT);
         assert(_bulbs  != null);
         assert(_groups != null);
-        NEXT_GROUP_ID ++;
-
     }
 
     /**
      * Constructs a group with specified name and a set of light bulbs that are in that group.
+     * @param id group id
      * @param name name of the group
      * @param bulbs set of light bulbs.
      * @throws IllegalArgumentException if bulbs == null or contain nulls
      */
-    public Group(String name, Set<Lightbulb> bulbs)
+    public Group(int id, String name, Set<Lightbulb> bulbs)
     {
-        super(NEXT_GROUP_ID, name);
+        super(id, name);
         if(bulbs == null || bulbs.contains(null))
             throw new IllegalArgumentException("Can't create a group.Wrong parameter.");
 
@@ -85,7 +81,6 @@ public class Group extends HueElement
         _groups = new LinkedHashMap<>(INIT_GROUP_COUNT);
         assert(_bulbs  != null);
         assert(_groups != null);
-        NEXT_GROUP_ID ++;
     }
 
 
@@ -93,7 +88,7 @@ public class Group extends HueElement
     private void repOk()
     {
         assert(_bulbs != null);
-        assert(_bulbs.size() <= INIT_BULB_COUNT);
+        assert(_bulbs.size() <= Bridge.INIT_BULB_COUNT);
         for(Map.Entry<Integer,Lightbulb> e: _bulbs.entrySet())
         {
             assert (e.getValue() != null);
@@ -133,8 +128,8 @@ public class Group extends HueElement
     }
 
     /**
-     * Adds new group to the list of groups. Insurance that the group was not already been
-     * added has to be implemented on the front end.
+     * Adds new group to the list of groups. If the group already exists, then its value will be
+     * replaced with a new one.
      * @param group new group to be added into existing list.
      * @throws IllegalArgumentException if group is null.
      */
@@ -147,8 +142,8 @@ public class Group extends HueElement
     }
 
     /**
-     * Adds a list of groups to the existing list. Insurance that the group was not already been
-     * added has to be implemented on the front end.
+     * Adds a list of groups to the existing list. If the group already exists, then its value will be
+     * replaced with a new one.
      * @param groups new list of groups to be added into existing list.
      * @throws IllegalArgumentException if group is null or contains null.
      */
@@ -181,7 +176,7 @@ public class Group extends HueElement
     }
 
     /**
-     * Removes a bulb from the group
+     * Removes a bulb from the group by bulb id
      * @param bulbId bulb that needs to be removed
      * @return true on success, false otherwise
      */
@@ -215,8 +210,8 @@ public class Group extends HueElement
 
 
     /**
-     * Updates group with specified list of  groups. All entries will be removed and replaced
-     * with new from the set. Does nothing if groups == null
+     * Updates group with specified list of  groups.
+     * Does nothing if groups == null
      * @param groups new set opf groups
      * @throws IllegalArgumentException if new list contains nulls
      */
@@ -227,13 +222,12 @@ public class Group extends HueElement
         if(groups.contains(null))
             throw new IllegalArgumentException("Can't update the group. parameter contains nulls");
         assert(_groups != null);
-        _groups.clear();
-        _groups = (Map<Integer, Group>) DataStructureHelper.hueElementsToLinkedMap(groups);
+        _groups.putAll((Map<Integer, Group>) DataStructureHelper.hueElementsToLinkedMap(groups));
     }
 
     /**
-     * Updates group with specified set of th. All entries will be removed and replaced
-     * with new from the set. Does nothing if bulbs == null
+     * Updates group with specified set of light bulbs.
+     * Does nothing if bulbs == null
      * @param bulbs new set of groups
      * @throws IllegalArgumentException if new set contains nulls
      */
@@ -244,8 +238,7 @@ public class Group extends HueElement
         if(bulbs.contains(null))
             throw new IllegalArgumentException("Can't update bulbs. parameter contains nulls");
         assert(_bulbs != null);
-        _bulbs.clear();
-        _bulbs = (Map<Integer, Lightbulb>) DataStructureHelper.hueElementsToLinkedMap(bulbs);
+        _bulbs.putAll((Map<Integer, Lightbulb>) DataStructureHelper.hueElementsToLinkedMap(bulbs));
     }
 
     /**

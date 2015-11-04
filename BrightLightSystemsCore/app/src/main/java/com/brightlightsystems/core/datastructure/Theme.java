@@ -1,13 +1,16 @@
 package com.brightlightsystems.core.datastructure;
 
 
+import com.brightlightsystems.core.utilities.definitions.DataStructureHelper;
 import com.brightlightsystems.core.utilities.notificationsystem.SystemMessage;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Class describes a single theme. A theme on its very
@@ -23,10 +26,6 @@ import java.util.Map;
  */
 public class Theme extends HueElement
 {
-    /**
-     * Initial indicator how much elements to store in the _bulb s
-     */
-    private static final byte INIT_BULB_COUNT  = 50;
     /**
      * Initial indicator how much elemnts to store in the _collection
      */
@@ -67,98 +66,34 @@ public class Theme extends HueElement
 
     /**
      * Constructs an empty theme.
+     * @param id id of the theme
      * @param name collection of bulbs with assigned traits
      */
-    public Theme(String name)
+    public Theme(int id, String name)
     {
-        super(NEXT_THEME_ID, name);
-        _bulbs       = new LinkedHashMap<>(INIT_BULB_COUNT);
+        super(id, name);
+        _bulbs       = new LinkedHashMap<>(Bridge.INIT_BULB_COUNT);
         _collection  = new LinkedHashMap<>(INIT_THEME_COUNT);
-        NEXT_THEME_ID++;
     }
 
     /**
      * Constructs a theme from specified id, name a and a collection of bulbs with traits
+     * @param id id of the theme
      * @param name name of the theme
      * @param bulbs set of bulbs with assigned traits.
      * @throws IllegalArgumentException if bulbs == null or contains nulls
      */
-    public Theme(String name, Map<Lightbulb, Trait> bulbs)
+    public Theme(int id, String name, Map<Integer, Trait> bulbs)
     {
-       super(NEXT_THEME_ID, name);
+       super(id, name);
         if(bulbs == null || bulbs.containsKey(null) || bulbs.containsValue(null))
             throw new IllegalArgumentException("Can't create theme due to incorrect argument");
 
         _bulbs = bulbs;
-        _collection  = new ArrayList<>(INIT_THEME_COUNT);
+        _collection  = new LinkedHashMap<>(INIT_THEME_COUNT);
         _activated = true;
-        NEXT_THEME_ID++;
-
     }
 
-    /**
-     * Constructs a theme from specified theme. Note it does not add specified theme to the list.
-     * It rather copies map of bulbs and traits.
-     * @param name - name of the theme
-     * @param theme - specified theme that is used to create a new theme
-     * @throws IllegalArgumentException if theme == null or containing map has nulls
-     */
-    public Theme(String name, Theme theme)
-    {
-        super(NEXT_THEME_ID, name);
-        if(!validateTheme(theme))
-            throw new IllegalArgumentException("Can't create theme due to incorrect argument");
-
-        _bulbs = theme._bulbs;
-        _collection  = new ArrayList<>(INIT_THEME_COUNT);
-        _activated = true;
-        NEXT_THEME_ID++;
-    }
-
-    /**
-     * Constructs a complex theme from specified list of themes.
-     * @param name - a name for the theme
-     * @param collection - collection of themes that are added to the theme
-     * @throws IllegalArgumentException if any of the themes == null or containing map has nulls
-     */
-    public Theme(String name, List<Theme> collection)
-    {
-        super(NEXT_THEME_ID, name);
-        for(Theme t:collection)
-        {
-            if(!validateTheme(t))
-                throw new IllegalArgumentException("Can't create theme due to incorrect argument");
-        }
-
-        _collection = collection;
-        _bulbs       = new HashMap<>(INIT_BULB_COUNT);
-        _activated = true;
-        NEXT_THEME_ID++;
-    }
-
-    /**
-     * Constructs a complex theme from specified list of themes.
-     * @param name - a name for the theme
-     * @param collection - collection of themes that are added to the theme
-     * @throws IllegalArgumentException if any of the themes == null or containing map has nulls
-     */
-    public Theme(String name, Map<Lightbulb, Trait> bulbs, List<Theme> collection )
-    {
-        super(NEXT_THEME_ID, name);
-        if(bulbs == null || bulbs.containsKey(null) || bulbs.containsValue(null))
-            throw new IllegalArgumentException("Can't create theme due to incorrect argument");
-        _bulbs = bulbs;
-
-        for(Theme t:collection)
-        {
-            if(!validateTheme(t))
-                throw new IllegalArgumentException("Can't create theme due to incorrect argument");
-        }
-
-        _collection = collection;
-        _activated = true;
-        NEXT_THEME_ID ++;
-    }
 
     /**
      * Check if current theme is activated
@@ -197,36 +132,37 @@ public class Theme extends HueElement
         if(!validateTheme(theme))
             throw new IllegalArgumentException("Can't create theme due to incorrect argument");
 
-        _collection.add(theme);
+        _collection.put(theme.getId(),theme);
         return true;
     }
 
     /**
-     * Removes theme from the list of theme by specified position
-     * @param pos specified position of the theme in the list of themes.
-     * @return removed theme. Never null.
+     * Removes theme from the list of theme by specified id
+     * @param id specified id of the theme in the collection of themes.
+     * @return true if successfully removed, false otherwise
      * @throws IllegalArgumentException if pos < 0 or if pos >= size of the list
      *
      */
-    public Theme removeTheme(int pos)
+    public boolean removeTheme(int id)
     {
         assert(_collection != null);
-        if(pos < 0 || pos >= _collection.size())
-            throw new IllegalArgumentException("Can't remove theme. Position value is negative");
-
-        return _collection.remove(pos);
+        if(_collection.remove(id) != null)
+            return true;
+        return false;
     }
 
     /**
      * Removes theme from the list of theme by specified position
      * @param theme specified position of the theme in the list of themes.
-     * @return true on success. Flase if theme is not present in the list.
+     * @return true if successfully removed, false otherwise
      *
      */
     public boolean removeTheme(Theme theme)
     {
         assert(_collection!=null);
-        return _collection.remove(theme);
+        if(_collection.remove(theme.getId())!= null)
+            return true;
+        return false;
     }
 
 
@@ -256,14 +192,14 @@ public class Theme extends HueElement
      * Get a collection of themes
      * @return collection of themes that represent this theme
      */
-    public List<Theme> getThemes()
+    public Collection<Theme> getThemes()
     {
-        return _collection;
+        return _collection.values();
     }
 
     /**
      * Stores specified bulb with trait for this bulb into theme. If the bulb is already exists
-     * than trait value will be updated for that bulb.
+     * then trait value will be updated for that bulb.
      * @param bulb specified bulb to store
      * @param trait characteristics that are assigned to the bulb
      * @return true on success, false otherwise
@@ -275,15 +211,15 @@ public class Theme extends HueElement
         if(bulb == null || trait == null)
             throw new IllegalArgumentException("Can't add bulb. One or more parameters is null");
 
-        return _bulbs.put(bulb, trait);
+        return _bulbs.put(bulb.getId(), trait);
     }
 
     /**
      * Add collection of bulbs and traits to the theme.
-     * @param bulbs collection of bulbs and traits that needs to be added.
+     * @param bulbs collection of bulbs ids and traits that needs to be added.
      * @throws IllegalArgumentException if the parameter is null or contains nulls
      */
-    public void addBulbs(Map<Lightbulb,Trait> bulbs)
+    public void addBulbs(Map<Integer,Trait> bulbs)
     {
         assert(_bulbs != null);
         if(bulbs == null || bulbs.containsKey(null) || _bulbs.containsValue(null))
@@ -295,7 +231,7 @@ public class Theme extends HueElement
      * Get a collection of bulbs and traits
      * @return collection of bulbs and traits.
      */
-    publicMap<Integer,Trait> getBulbs()
+    public Map<Integer,Trait> getBulbs()
     {
         return _bulbs;
     }
@@ -318,8 +254,8 @@ public class Theme extends HueElement
     {
         assert(_collection != null);
         int total = bulbCount();
-        for(Theme t:_collection)
-            total += t.bulbCount();
+        for(Map.Entry<Integer,Theme> t:_collection.entrySet())
+            total += t.getValue().bulbCount();
         return total;
     }
 
@@ -329,14 +265,14 @@ public class Theme extends HueElement
      * @param bulbs collection of bulbs and traits that needs to be added.
      * @throws IllegalArgumentException if the parameter is null or contains nulls
      */
-    public void updateBulbs(Map<Lightbulb,Trait> bulbs)
+    public void updateBulbs(Map<Integer,Trait> bulbs)
     {
         if(bulbs == null)
             return;
        addBulbs(bulbs);
     }
 
-    public void updateThemes(List<Theme> themes)
+    public void updateThemes(Set<Theme> themes)
     {
         if(themes == null)
             return;
@@ -347,7 +283,7 @@ public class Theme extends HueElement
             if(!validateTheme(t))
                 throw new IllegalArgumentException("Can't update theme due to incorrect argument");
         }
-        _collection = themes;
+        _collection = (Map<Integer, Theme>) DataStructureHelper.hueElementsToLinkedMap(themes);
     }
 
 
@@ -360,7 +296,7 @@ public class Theme extends HueElement
     {
         if(theme == null)
             return false;
-        Map<Lightbulb, Trait> bulbs = theme._bulbs;
+        Map<Integer, Trait> bulbs = theme._bulbs;
         if(bulbs == null || bulbs.containsKey(null) || bulbs.containsValue(null))
             return false;
         return true;

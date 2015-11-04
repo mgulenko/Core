@@ -16,7 +16,7 @@ import java.util.Set;
 public class Bridge extends HueElement
 {
     /**Initial light bulb count. Since bridge can control only 50 of them thus init count is 50*/
-    public static final byte INIT_BULB_COUNT = 50;
+    public static final int INIT_BULB_COUNT = 50;
     /**Factory name of the bridge. Not an empty string. Database ensures that*/
     public final String _factoryName;
     /**Set of light bulbs they this bridge controls. Can't be null, can't contains nulls*/

@@ -40,15 +40,16 @@ public class Lightbulb extends HueElement
 
     /**
      * Constructs a lightbulb with specified parameters
+     * @param id specified id of the light bulb
      * @param factoryName factory name of the lightbulb
      * @param name user defined name of the light bulb e.g. "kitchen lightbulb"
      * @param trait current traits of the light bulb. If null uses default settings.
      * @param state current state of the lightbulb.
      * @throws IllegalArgumentException if parameters are nulls
      */
-    public Lightbulb(String factoryName, String name, Trait trait, States state)
+    public Lightbulb(int id, String factoryName, String name, Trait trait, States state)
     {
-        super(NEXT_BULB_ID, name);
+        super(id, name);
         if(factoryName == null || state == null)
             throw new IllegalArgumentException("Can't create a lightbulb.One ore more parameters is null");
 
@@ -68,7 +69,7 @@ public class Lightbulb extends HueElement
      */
     public Lightbulb(Lightbulb bulb)
     {
-        this(bulb.getFactoryName(), bulb.getName(), bulb.getTrait(), bulb.getState());
+        this(bulb.getId(), bulb.getFactoryName(), bulb.getName(), bulb.getTrait(), bulb.getState());
     }
 
     /**

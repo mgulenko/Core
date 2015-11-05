@@ -87,6 +87,61 @@ public class Bridge extends HueElement
     }
 
     /**
+     * Adds a set of new light bulbs to the set of bulbs.If the bulb is already present in the set,
+     * then old instance will be removed and replaced with the new one. If the bridge can't
+     * control any more bulbs (_bulbs.size() + bulb.size() ==INIT_BULB_COUNT)) then method does nothing.
+     * @param bulbs set of bulbs that is to be added to the set
+     * @return true on success, false otherwise
+     * @throws IllegalArgumentException if bulb is null
+     */
+    public boolean addBulbs(Set<Lightbulb> bulbs)
+    {
+        if(bulbs == null || bulbs.contains(null))
+            throw new IllegalArgumentException("Can't add bulb. Parameter is null.");
+        assert(_bulbs != null);
+        if(_bulbs.size() + bulbs.size() > INIT_BULB_COUNT)
+            return false;
+        _bulbs.putAll((Map<Integer, Lightbulb>) DataStructureHelper.hueElementsToLinkedMap(bulbs));
+        return true;
+    }
+
+    /**
+     * Updates a light bulb state.
+     * @param bulb bulb that is to be updated within the set
+     * @return true on success, false if the bulb is not present in the set
+     * @throws IllegalArgumentException if bulb is null
+     */
+    public boolean update(Lightbulb bulb)
+    {
+        if(bulb == null)
+            throw new IllegalArgumentException("Can't add bulb. Parameter is null.");
+        assert(_bulbs != null);
+        if(!_bulbs.containsKey(bulb.getId()))
+            return false;
+        _bulbs.put(bulb.getId(), bulb);
+        return true;
+    }
+
+    /**
+     * Updates all light bulbs state. If the bulb is not present in the set, then that bulb will be skipped.
+     * @param bulbs bulb that is to be updated within the set
+     * @return true on success, false otherwise
+     * @throws IllegalArgumentException if bulb is null
+     */
+    public boolean updateAll(Set<Lightbulb> bulbs)
+    {
+        if(bulbs== null)
+            throw new IllegalArgumentException("Can't add bulb. Parameter is null.");
+        assert(_bulbs != null);
+        for(Lightbulb b : bulbs)
+        {
+            update(b);
+        }
+        return true;
+    }
+
+
+    /**
      * Removes bulb from the set
      * @param bulbId bulb to be removed
      * @return true on success, false otherwise

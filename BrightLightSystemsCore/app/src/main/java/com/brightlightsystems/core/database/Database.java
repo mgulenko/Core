@@ -54,6 +54,5 @@ public class Database extends SQLiteOpenHelper implements Subscribable
         {
 
         }
-        return false;
     }
 }

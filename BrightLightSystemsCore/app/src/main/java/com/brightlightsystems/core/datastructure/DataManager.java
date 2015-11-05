@@ -5,6 +5,7 @@ import com.brightlightsystems.core.utilities.notificationsystem.Publisher;
 import com.brightlightsystems.core.utilities.notificationsystem.Subscribable;
 import com.brightlightsystems.core.utilities.notificationsystem.Subscriber;
 import com.brightlightsystems.core.utilities.notificationsystem.SystemMessage;
+import com.brightlightsystems.core.utilities.notificationsystem.Messages;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -29,6 +30,11 @@ public class DataManager implements Subscribable
     private static Map<Integer,Bridge>     _bridgeCollection;
 
 
+
+    /**id of the current bridge that is controlled by the application.*/
+    private static int _activeBridgeId;
+
+
     /**
      * Constructs an empty instance
      */
@@ -37,6 +43,7 @@ public class DataManager implements Subscribable
         _themeCollection  = new LinkedHashMap<>();
         _groupCollection  = new LinkedHashMap<>();
         _bridgeCollection = new LinkedHashMap<>();
+        _activeBridgeId = 0;
         subscribe();
     }
     /**
@@ -51,6 +58,25 @@ public class DataManager implements Subscribable
         return _instance;
     }
 
+    /**
+     * Get an id of the bridge that is controlled by the app
+     * @return bridge id
+     */
+    public static int getActiveBridgeId() {
+        return _activeBridgeId;
+    }
+
+    /**
+     * Sets id for the current bridge that is controlled by the app
+     * @param activeBridgeId
+     * @throws IllegalArgumentException if < 1
+     */
+    public static void setActiveBridgeId(int activeBridgeId)
+    {
+        if(activeBridgeId < 1)
+            throw new IllegalArgumentException("Illegal argument for the bridge id");
+        _activeBridgeId = activeBridgeId;
+    }
 
     /**
      * Get a collection of theme
@@ -134,7 +160,7 @@ public class DataManager implements Subscribable
     public void removeTheme(int id)
     {
         _themeCollection.remove(id);
-        Publisher.publish(new SystemMessage<Integer>(Publisher.DELETE_SUBTHEME, id));
+        Publisher.publish(new SystemMessage<Integer>(Messages.MSG_REMOVE_SUBTHEMES, id));
     }
 
     /**
@@ -156,7 +182,7 @@ public class DataManager implements Subscribable
     public void removeGroup(int id)
     {
         _groupCollection.remove(id);
-        Publisher.publish(new SystemMessage<Integer>(Publisher.DELETE_SUBGROUP, id));
+        Publisher.publish(new SystemMessage<Integer>(Messages.MSG_REMOVE_SUBGROUPS, id));
     }
 
     /**
@@ -184,70 +210,150 @@ public class DataManager implements Subscribable
     @Override
     public void subscribe()
     {
-        Subscriber.subscribe(this, Publisher.ACTIVATE_THEME);
-        Subscriber.subscribe(this, Publisher.DEACTIVATE_THEME);
-        Subscriber.subscribe(this, Publisher.UPDATE_THEME);
-        Subscriber.subscribe(this, Publisher.DELETE_THEME);
+        Subscriber.subscribe(this, Messages.MSG_ADD_BULB);
+        Subscriber.subscribe(this, Messages.MSG_REMOVE_BULB);
+        Subscriber.subscribe(this, Messages.MSG_UPDATE_SINGLE_BULB);
+        Subscriber.subscribe(this, Messages.MSG_UPDATE_MULTI_BULB);
+        Subscriber.subscribe(this, Messages.MSG_SYNC_BULB_STATE);
 
-        Subscriber.subscribe(this, Publisher.ACTIVATE_GROUP);
-        Subscriber.subscribe(this, Publisher.DEACTIVATE_GROUP);
-        Subscriber.subscribe(this, Publisher.UPDATE_GROUP);
-        Subscriber.subscribe(this, Publisher.DELETE_GROUP);
+        Subscriber.subscribe(this, Messages.MSG_ADD_THEME);
+        Subscriber.subscribe(this, Messages.MSG_REMOVE_THEME);
+        Subscriber.subscribe(this, Messages.MSG_UPDATE_SINGLE_THEME);
+        Subscriber.subscribe(this, Messages.MSG_UPDATE_COMPLEX_THEME);
+        Subscriber.subscribe(this, Messages.MSG_ACTIVATE_THEME);
+        Subscriber.subscribe(this, Messages.MSG_DEACTIVATE_THEME);
+        Subscriber.subscribe(this, Messages.MSG_SYNC_THEMES);
+
+        Subscriber.subscribe(this, Messages.MSG_ADD_GROUP);
+        Subscriber.subscribe(this, Messages.MSG_REMOVE_GROUP);
+        Subscriber.subscribe(this, Messages.MSG_UPDATE_SINGLE_GROUP);
+        Subscriber.subscribe(this, Messages.MSG_UPDATE_COMPLEX_GROUP);
+        Subscriber.subscribe(this, Messages.MSG_ACTIVATE_GROUP);
+        Subscriber.subscribe(this, Messages.MSG_DEACTIVATE_GROUP);
+        Subscriber.subscribe(this, Messages.MSG_SYNC_GROUPS);
     }
 
     @Override
     public void unsubscribe()
     {
-        Subscriber.unsubscribe(this, Publisher.ACTIVATE_THEME);
-        Subscriber.unsubscribe(this, Publisher.DEACTIVATE_THEME);
-        Subscriber.unsubscribe(this, Publisher.UPDATE_THEME);
-        Subscriber.unsubscribe(this, Publisher.DELETE_THEME);
+        Subscriber.unsubscribe(this, Messages.MSG_ADD_BULB);
+        Subscriber.unsubscribe(this, Messages.MSG_REMOVE_BULB);
+        Subscriber.unsubscribe(this, Messages.MSG_UPDATE_SINGLE_BULB);
+        Subscriber.unsubscribe(this, Messages.MSG_UPDATE_MULTI_BULB);
+        Subscriber.unsubscribe(this, Messages.MSG_SYNC_BULB_STATE);
 
-        Subscriber.unsubscribe(this, Publisher.ACTIVATE_GROUP);
-        Subscriber.unsubscribe(this, Publisher.DEACTIVATE_GROUP);
-        Subscriber.unsubscribe(this, Publisher.UPDATE_GROUP);
-        Subscriber.unsubscribe(this, Publisher.DELETE_GROUP);
+        Subscriber.unsubscribe(this, Messages.MSG_ADD_THEME);
+        Subscriber.unsubscribe(this, Messages.MSG_REMOVE_THEME);
+        Subscriber.unsubscribe(this, Messages.MSG_UPDATE_SINGLE_THEME);
+        Subscriber.unsubscribe(this, Messages.MSG_UPDATE_COMPLEX_THEME);
+        Subscriber.unsubscribe(this, Messages.MSG_ACTIVATE_THEME);
+        Subscriber.unsubscribe(this, Messages.MSG_DEACTIVATE_THEME);
+        Subscriber.unsubscribe(this, Messages.MSG_SYNC_THEMES);
+
+        Subscriber.unsubscribe(this, Messages.MSG_ADD_GROUP);
+        Subscriber.unsubscribe(this, Messages.MSG_REMOVE_GROUP);
+        Subscriber.unsubscribe(this, Messages.MSG_UPDATE_SINGLE_GROUP);
+        Subscriber.unsubscribe(this, Messages.MSG_UPDATE_COMPLEX_GROUP);
+        Subscriber.unsubscribe(this, Messages.MSG_ACTIVATE_GROUP);
+        Subscriber.unsubscribe(this, Messages.MSG_DEACTIVATE_GROUP);
+        Subscriber.unsubscribe(this, Messages.MSG_SYNC_GROUPS);
     }
 
     @Override
     public <T> void onRecieve(SystemMessage<T> message)
     {
-        Integer id;
-        Theme theme;
-        Group group;
+
         switch(message.ID)
         {
-            case Publisher.ACTIVATE_THEME:
-                id = (Integer) message.getAttachment();
-                _themeCollection.get(id).activate();
+            case Messages.MSG_ADD_BULB:
+                _bridgeCollection.get(_activeBridgeId).addBulb((Lightbulb)message.getAttachment());
                 break;
-            case Publisher.DEACTIVATE_THEME:
-                id = (Integer) message.getAttachment();
-                _themeCollection.get(id).deactivate();
+            case Messages.MSG_REMOVE_BULB:
+                _bridgeCollection.get(_activeBridgeId).removeBulb((Integer)message.getAttachment());
                 break;
-            case Publisher.UPDATE_THEME:
-                theme = (Theme)message.getAttachment();
-                _themeCollection.get(theme.getId()).updateBulbs(theme.getBulbs());
+            case Messages.MSG_UPDATE_SINGLE_BULB:
+                _bridgeCollection.get(_activeBridgeId).update((Lightbulb) message.getAttachment());
                 break;
-            case Publisher.DELETE_THEME:
-                id = (Integer) message.getAttachment();
-                _themeCollection.remove(id);
+            case Messages.MSG_UPDATE_MULTI_BULB:
+            {
+                Set<Lightbulb> bs = (Set<Lightbulb>) message.getAttachment();
+                _bridgeCollection.get(_activeBridgeId).updateAll(bs);
+            }
                 break;
-            case Publisher.ACTIVATE_GROUP:
-                id = (Integer) message.getAttachment();
-                _groupCollection.get(id).activate();
+            case Messages.MSG_SYNC_BULB_STATE:
+                //TODO: implement this message handler
                 break;
-            case Publisher.DEACTIVATE_GROUP:
-                id = (Integer) message.getAttachment();
-                _groupCollection.get(id).deactivate();
+            case Messages.MSG_ADD_GROUP:
+            {
+                Group g = (Group)message.getAttachment();
+                _groupCollection.put(g.getId(),g);
+            }
                 break;
-            case Publisher.UPDATE_GROUP:
-                group = (Group) message.getAttachment();
-                _groupCollection.get(group.getId()).updateBulbs((Set<Lightbulb>) group.getBulbs());
+            case Messages.MSG_REMOVE_GROUP:
+                removeGroup(((Group)message.getAttachment()).getId());
                 break;
-            case Publisher.DELETE_GROUP:
-                id = (Integer) message.getAttachment();
-                _groupCollection.remove(id);
+            case Messages.MSG_UPDATE_SINGLE_GROUP:
+            {
+                Group g = (Group)message.getAttachment();
+                _groupCollection.get(g.getId()).updateBulbs((Set)g.getBulbs());
+            }
+                break;
+            case Messages.MSG_UPDATE_COMPLEX_GROUP:
+            {
+                Group g = (Group)message.getAttachment();
+                _groupCollection.get(g.getId()).updateBulbs((Set)g.getBulbs());
+                _groupCollection.get(g.getId()).updateGroup((Set)g.getGroups());
+            }
+                break;
+            case Messages.MSG_ACTIVATE_GROUP:
+            {
+                Group g = (Group) message.getAttachment();
+                _groupCollection.get(g.getId()).activate();
+            }
+                break;
+            case Messages.MSG_DEACTIVATE_GROUP:
+            {
+                Group g = (Group) message.getAttachment();
+                _groupCollection.get(g.getId()).deactivate();
+            }
+                break;
+            case Messages.MSG_SYNC_GROUPS:
+                //TODO: implement message handler
+                break;
+            case Messages.MSG_ADD_THEME:
+            {
+                Theme t = (Theme) message.getAttachment();
+                _themeCollection.put(t.getId(),t);
+            }
+                break;
+            case Messages.MSG_REMOVE_THEME:
+                removeTheme(((Theme) message.getAttachment()).getId());
+                break;
+            case Messages.MSG_UPDATE_SINGLE_THEME:
+            {
+                Theme t = (Theme)message.getAttachment();
+                _themeCollection.get(t.getId()).updateBulbs(t.getBulbs());
+            }
+                break;
+            case Messages.MSG_UPDATE_COMPLEX_THEME:
+            {
+                Theme t = (Theme)message.getAttachment();
+                _themeCollection.get(t.getId()).updateBulbs(t.getBulbs());
+                _themeCollection.get(t.getId()).updateThemes((Set)t.getThemes());
+            }
+                break;
+            case Messages.MSG_ACTIVATE_THEME:
+            {
+                Theme t = (Theme) message.getAttachment();
+                _themeCollection.get(t.getId()).activate();
+            }
+                break;
+            case Messages.MSG_DEACTIVATE_THEME:
+                Theme t = (Theme) message.getAttachment();
+                _themeCollection.get(t.getId()).deactivate();
+                break;
+            case Messages.MSG_SYNC_THEMES:
+                //TODO: Implement message handler
                 break;
         }
     }

@@ -2,11 +2,8 @@ package com.brightlightsystems.core.datastructure;
 
 import com.brightlightsystems.core.utilities.definitions.DataStructureHelper;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -37,6 +34,8 @@ public class Group extends HueElement
      * List of groups that represent this group. Can't be null, can't contains nulls
      */
     private Map<Integer,Group> _groups;
+    /**Flag that indicates if this group is active*/
+    private boolean _activated;
 
     /**
      * Sets next group id.
@@ -152,7 +151,7 @@ public class Group extends HueElement
         if(groups == null || groups.contains(null))
             throw new IllegalArgumentException("Can't create a group.Wrong parameter.");
         assert(_groups != null);
-        _groups.putAll((Map< Integer, Group>) DataStructureHelper.hueElementsToLinkedMap(groups));
+        _groups.putAll((Map<Integer, Group>) DataStructureHelper.hueElementsToLinkedMap(groups));
     }
 
     /**
@@ -274,6 +273,30 @@ public class Group extends HueElement
         return total;
     }
 
+    /**
+     * Check if current group is activated
+     * @return true if activated, false otherwise
+     */
+    public boolean isActivated()
+    {
+        return _activated;
+    }
+
+    /**
+     * Activate the group
+     */
+    public void activate()
+    {
+        _activated = true;
+    }
+
+    /**
+     * Deactivate the group
+     */
+    public void deactivate()
+    {
+        _activated = false;
+    }
 
     /******************** end of class********************************/
 }

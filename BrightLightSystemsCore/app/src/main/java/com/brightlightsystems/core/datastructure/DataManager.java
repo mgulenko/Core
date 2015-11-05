@@ -3,10 +3,10 @@ package com.brightlightsystems.core.datastructure;
 import com.brightlightsystems.core.utilities.definitions.DataStructureHelper;
 import com.brightlightsystems.core.utilities.notificationsystem.Publisher;
 import com.brightlightsystems.core.utilities.notificationsystem.Subscribable;
+import com.brightlightsystems.core.utilities.notificationsystem.Subscriber;
 import com.brightlightsystems.core.utilities.notificationsystem.SystemMessage;
 
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -21,8 +21,11 @@ public class DataManager implements Subscribable
      */
     private static DataManager _instance;
 
+    /**Map of themes, where K is a theme's id and V is the actual theme*/
     private static Map<Integer,Theme>      _themeCollection;
+    /**Map of groups, where K is a group's id and V is the actual group*/
     private static Map<Integer,Group>      _groupCollection;
+    /**Map of bridges, where K is a bridge's id and V is the actual bridge*/
     private static Map<Integer,Bridge>     _bridgeCollection;
 
 
@@ -34,6 +37,7 @@ public class DataManager implements Subscribable
         _themeCollection  = new LinkedHashMap<>();
         _groupCollection  = new LinkedHashMap<>();
         _bridgeCollection = new LinkedHashMap<>();
+        subscribe();
     }
     /**
      * Returns an instance of this class
@@ -133,18 +137,118 @@ public class DataManager implements Subscribable
         Publisher.publish(new SystemMessage<Integer>(Publisher.DELETE_SUBTHEME, id));
     }
 
-    @Override
-    public void subscribe() {
+    /**
+     * Adds the specified group into collection of groups
+     * @param group new group to add.
+     * @throws IllegalArgumentException if null.
+     */
+    public void addGroup(Group group)
+    {
+        if(group == null)
+            throw new IllegalArgumentException("Failed to add group.");
+        _groupCollection.put(group.getId(), group);
+    }
 
+    /**
+     * Removes group by specified id.
+     * @param id group id
+     */
+    public void removeGroup(int id)
+    {
+        _groupCollection.remove(id);
+        Publisher.publish(new SystemMessage<Integer>(Publisher.DELETE_SUBGROUP, id));
+    }
+
+    /**
+     * Adds the specified bridge into collection of bridges
+     * @param bridge new group to add.
+     * @throws IllegalArgumentException if null.
+     */
+    public void addBridge(Bridge bridge)
+    {
+        if(bridge == null)
+            throw new IllegalArgumentException("Failed to add bridge.");
+        _bridgeCollection.put(bridge.getId(), bridge);
+    }
+
+    /**
+     * Removes bridge by specified id.
+     * @param id bridge id
+     */
+    public void removeBridge(int id)
+    {
+        _bridgeCollection.remove(id);
+    }
+
+
+    @Override
+    public void subscribe()
+    {
+        Subscriber.subscribe(this, Publisher.ACTIVATE_THEME);
+        Subscriber.subscribe(this, Publisher.DEACTIVATE_THEME);
+        Subscriber.subscribe(this, Publisher.UPDATE_THEME);
+        Subscriber.subscribe(this, Publisher.DELETE_THEME);
+
+        Subscriber.subscribe(this, Publisher.ACTIVATE_GROUP);
+        Subscriber.subscribe(this, Publisher.DEACTIVATE_GROUP);
+        Subscriber.subscribe(this, Publisher.UPDATE_GROUP);
+        Subscriber.subscribe(this, Publisher.DELETE_GROUP);
     }
 
     @Override
-    public void unsubscribe() {
+    public void unsubscribe()
+    {
+        Subscriber.unsubscribe(this, Publisher.ACTIVATE_THEME);
+        Subscriber.unsubscribe(this, Publisher.DEACTIVATE_THEME);
+        Subscriber.unsubscribe(this, Publisher.UPDATE_THEME);
+        Subscriber.unsubscribe(this, Publisher.DELETE_THEME);
 
+        Subscriber.unsubscribe(this, Publisher.ACTIVATE_GROUP);
+        Subscriber.unsubscribe(this, Publisher.DEACTIVATE_GROUP);
+        Subscriber.unsubscribe(this, Publisher.UPDATE_GROUP);
+        Subscriber.unsubscribe(this, Publisher.DELETE_GROUP);
     }
 
     @Override
-    public <T> boolean onRecieve(SystemMessage<T> message) {
-        return false;
+    public <T> void onRecieve(SystemMessage<T> message)
+    {
+        Integer id;
+        Theme theme;
+        Group group;
+        switch(message.ID)
+        {
+            case Publisher.ACTIVATE_THEME:
+                id = (Integer) message.getAttachment();
+                _themeCollection.get(id).activate();
+                break;
+            case Publisher.DEACTIVATE_THEME:
+                id = (Integer) message.getAttachment();
+                _themeCollection.get(id).deactivate();
+                break;
+            case Publisher.UPDATE_THEME:
+                theme = (Theme)message.getAttachment();
+                _themeCollection.get(theme.getId()).updateBulbs(theme.getBulbs());
+                break;
+            case Publisher.DELETE_THEME:
+                id = (Integer) message.getAttachment();
+                _themeCollection.remove(id);
+                break;
+            case Publisher.ACTIVATE_GROUP:
+                id = (Integer) message.getAttachment();
+                _groupCollection.get(id).activate();
+                break;
+            case Publisher.DEACTIVATE_GROUP:
+                id = (Integer) message.getAttachment();
+                _groupCollection.get(id).deactivate();
+                break;
+            case Publisher.UPDATE_GROUP:
+                group = (Group) message.getAttachment();
+                _groupCollection.get(group.getId()).updateBulbs((Set<Lightbulb>) group.getBulbs());
+                break;
+            case Publisher.DELETE_GROUP:
+                id = (Integer) message.getAttachment();
+                _groupCollection.remove(id);
+                break;
+        }
     }
 }

@@ -5,11 +5,8 @@ import com.brightlightsystems.core.utilities.definitions.DataStructureHelper;
 import com.brightlightsystems.core.utilities.notificationsystem.Subscribable;
 import com.brightlightsystems.core.utilities.notificationsystem.SystemMessage;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -315,8 +312,8 @@ public class Theme extends HueElement implements Subscribable
     }
 
     @Override
-    public <T> boolean onRecieve(SystemMessage<T> message) {
-        return false;
+    public <T> void onRecieve(SystemMessage<T> message) {
+
     }
 
 

@@ -20,7 +20,7 @@ public interface Subscribable
      * Gets invoked to receive a message
      * @param message - received message. Never null.
      */
-    <T> boolean onRecieve(SystemMessage<T> message);
+    <T> void onRecieve(SystemMessage<T> message);
 
     /******************** end of class********************************/
 }

@@ -36,8 +36,28 @@ public abstract class Publisher
     public static final int DELETE_THEME                = 0x0004;
     /**
      * Notifies that all complex themes have to delete a sub-theme. FOREVER!!!
-     * */
+     */
     public static final int DELETE_SUBTHEME             = 0x0005;
+    /**
+     * Notifies that group needs to be updated.
+     */
+    public static final int UPDATE_GROUP                = 0x0006;
+    /**
+     * Notifies that group needs to be activated
+     */
+    public static final int ACTIVATE_GROUP              = 0x0007;
+    /**
+     * Notifies that group needs to be deactivated
+     */
+    public static final int DEACTIVATE_GROUP            = 0x0008;
+    /**
+     * Notifies that system group to be deleted.
+     */
+    public static final int DELETE_GROUP                = 0x0009;
+    /**
+     * Notifies that all complex group have to delete a sub-group.
+     */
+    public static final int DELETE_SUBGROUP             = 0x000A;
 
 
     ///////////////////MODULES MESSAGE DEFINITIONS////////////////////////////
@@ -46,6 +66,7 @@ public abstract class Publisher
 
     /**Indicates the message has been processed.*/
     public static final int MESSAGE_PROCESSED            = 0x0001;
+
 
     /**
      * Method publishes specified message.

@@ -290,7 +290,7 @@ public class DataManager implements Subscribable
             }
                 break;
             case Messages.MSG_REMOVE_GROUP:
-                removeGroup(((Group)message.getAttachment()).getId());
+                removeGroup(((Integer)message.getAttachment()));
                 break;
             case Messages.MSG_UPDATE_SINGLE_GROUP:
             {
@@ -327,7 +327,7 @@ public class DataManager implements Subscribable
             }
                 break;
             case Messages.MSG_REMOVE_THEME:
-                removeTheme(((Theme) message.getAttachment()).getId());
+                removeTheme((Integer) message.getAttachment());
                 break;
             case Messages.MSG_UPDATE_SINGLE_THEME:
             {

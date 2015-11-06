@@ -1,6 +1,10 @@
 package com.brightlightsystems.core.datastructure;
 
 import com.brightlightsystems.core.utilities.definitions.DataStructureHelper;
+import com.brightlightsystems.core.utilities.notificationsystem.Messages;
+import com.brightlightsystems.core.utilities.notificationsystem.Subscribable;
+import com.brightlightsystems.core.utilities.notificationsystem.Subscriber;
+import com.brightlightsystems.core.utilities.notificationsystem.SystemMessage;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -12,7 +16,7 @@ import java.util.Set;
  * The group can contain other groups as well.
  * @author Michael Gulenko Created on 10/7/2015.
  */
-public class Group extends HueElement
+public class Group extends HueElement implements Subscribable
 {
     /**
      * Initial indicator how much elemnts to store in the _collection
@@ -138,6 +142,7 @@ public class Group extends HueElement
             throw new IllegalArgumentException("Can't add bulb. Parameter is null.");
         assert(_groups != null);
         _groups.put(group.getId(), group);
+        subscribe();
     }
 
     /**
@@ -152,6 +157,7 @@ public class Group extends HueElement
             throw new IllegalArgumentException("Can't create a group.Wrong parameter.");
         assert(_groups != null);
         _groups.putAll((Map<Integer, Group>) DataStructureHelper.hueElementsToLinkedMap(groups));
+        subscribe();
     }
 
     /**
@@ -193,6 +199,8 @@ public class Group extends HueElement
     {
         assert(_groups != null);
         _groups.remove(groupId);
+        if(_groups.size() == 0)
+            unsubscribe();
     }
 
 
@@ -205,6 +213,7 @@ public class Group extends HueElement
         assert(_groups != null);
         _bulbs.clear();
         _groups.clear();
+        unsubscribe();
     }
 
 
@@ -222,6 +231,7 @@ public class Group extends HueElement
             throw new IllegalArgumentException("Can't update the group. parameter contains nulls");
         assert(_groups != null);
         _groups.putAll((Map<Integer, Group>) DataStructureHelper.hueElementsToLinkedMap(groups));
+        subscribe();
     }
 
     /**
@@ -296,6 +306,33 @@ public class Group extends HueElement
     public void deactivate()
     {
         _activated = false;
+    }
+
+
+
+
+    @Override
+    public void subscribe()
+    {
+        Subscriber.subscribe(this, Messages.MSG_REMOVE_SUBTHEMES);
+    }
+
+    @Override
+    public void unsubscribe()
+    {
+        Subscriber.unsubscribe(this, Messages.MSG_REMOVE_SUBTHEMES);
+    }
+
+    @Override
+    public <T> void onRecieve(SystemMessage<T> message)
+    {
+
+        switch (message.ID)
+        {
+            case Messages.MSG_REMOVE_SUBTHEMES:
+                _groups.remove((Integer)message.getAttachment());
+                break;
+        }
     }
 
     /******************** end of class********************************/

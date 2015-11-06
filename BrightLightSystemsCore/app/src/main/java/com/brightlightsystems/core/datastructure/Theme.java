@@ -2,7 +2,9 @@ package com.brightlightsystems.core.datastructure;
 
 
 import com.brightlightsystems.core.utilities.definitions.DataStructureHelper;
+import com.brightlightsystems.core.utilities.notificationsystem.Messages;
 import com.brightlightsystems.core.utilities.notificationsystem.Subscribable;
+import com.brightlightsystems.core.utilities.notificationsystem.Subscriber;
 import com.brightlightsystems.core.utilities.notificationsystem.SystemMessage;
 
 import java.util.Collection;
@@ -131,6 +133,7 @@ public class Theme extends HueElement implements Subscribable
             throw new IllegalArgumentException("Can't create theme due to incorrect argument");
 
         _collection.put(theme.getId(),theme);
+        subscribe();
         return true;
     }
 
@@ -145,7 +148,11 @@ public class Theme extends HueElement implements Subscribable
     {
         assert(_collection != null);
         if(_collection.remove(id) != null)
+        {
+            if(_collection.size() == 0)
+                unsubscribe();
             return true;
+        }
         return false;
     }
 
@@ -159,7 +166,11 @@ public class Theme extends HueElement implements Subscribable
     {
         assert(_collection!=null);
         if(_collection.remove(theme.getId())!= null)
+        {
+            if(_collection.size() == 0)
+                unsubscribe();
             return true;
+        }
         return false;
     }
 
@@ -174,6 +185,7 @@ public class Theme extends HueElement implements Subscribable
         assert(_collection != null);
         _bulbs.clear();
         _collection.clear();
+        unsubscribe();
     }
 
     /**
@@ -270,6 +282,10 @@ public class Theme extends HueElement implements Subscribable
        addBulbs(bulbs);
     }
 
+    /**
+     * Updates the theme collection. If vaue dos not exist, then it will be added into  the map
+     * @param themes
+     */
     public void updateThemes(Set<Theme> themes)
     {
         if(themes == null)
@@ -281,7 +297,7 @@ public class Theme extends HueElement implements Subscribable
             if(!validateTheme(t))
                 throw new IllegalArgumentException("Can't update theme due to incorrect argument");
         }
-        _collection = (Map<Integer, Theme>) DataStructureHelper.hueElementsToLinkedMap(themes);
+        _collection.putAll((Map<Integer, Theme>) DataStructureHelper.hueElementsToLinkedMap(themes));
     }
 
 
@@ -303,17 +319,24 @@ public class Theme extends HueElement implements Subscribable
     @Override
     public void subscribe()
     {
-
+        Subscriber.subscribe(this, Messages.MSG_REMOVE_SUBTHEMES);
     }
 
     @Override
-    public void unsubscribe() {
-
+    public void unsubscribe()
+    {
+        Subscriber.subscribe(this, Messages.MSG_REMOVE_SUBTHEMES);
     }
 
     @Override
-    public <T> void onRecieve(SystemMessage<T> message) {
-
+    public <T> void onRecieve(SystemMessage<T> message)
+    {
+        switch (message.ID)
+        {
+            case Messages.MSG_REMOVE_SUBTHEMES:
+                _collection.remove((Integer)message.getAttachment());
+                break;
+        }
     }
 
 

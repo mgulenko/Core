@@ -13,6 +13,7 @@ import java.util.Set;
 
 /**
  * Singleton class that holds all structural key components
+ * and responicble for managing data flow within it
  * @author Michael Gulenko. Created on 10/30/2015.
  */
 public class DataManager implements Subscribable

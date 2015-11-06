@@ -44,8 +44,8 @@ public class Bridge extends HueElement
      * @param name name of the element.
      * @param factoryName factory name of the bridge
      * @throws IllegalArgumentException if id < 1 or name == null
-     * @throws IllegalArgumentException if bulbs == null or contains nulls or size is greater than
-     *                                  INIT_BULB_COUNT.
+     * @throws IllegalArgumentException if bulbs == null or contains nulls or size
+     * is greater than INIT_BULB_COUNT.
      */
     public Bridge(int id, String name, String factoryName, Set<Lightbulb> bulbs)
     {

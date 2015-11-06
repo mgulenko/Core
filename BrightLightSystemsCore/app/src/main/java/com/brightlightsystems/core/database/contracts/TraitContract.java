@@ -20,6 +20,6 @@ public final class TraitContract
         public static final String COLUMN_NAME_BULB_ID              = "bulb_id";
         public static final String COLUMN_NAME_BULB_COLOR           = "bulb_color";
         public static final String COLUMN_NAME_BULB_BRIGHTNESS      = "bulb_brightness";
-        public static final String COLUMN_NAME_COLOR_SATURATION     = "color_saturation";
+        public static final String COLUMN_NAME_COLOR_TRANSPARENCY   = "color_transparency";
     }
 }

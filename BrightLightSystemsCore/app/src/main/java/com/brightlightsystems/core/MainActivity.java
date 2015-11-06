@@ -61,8 +61,7 @@ public class MainActivity extends AppCompatActivity {
 
         //CREATING BRIDGE EXAMPLE
 
-        Bridge bridge = new Bridge(1,"Bridge", "Factory Bridge");
-        bridge.addBulb(new Lightbulb("BULB", "MY BULB", Trait.Default_Trait, Lightbulb.States.OFF));
+
 
         //ANNOTATION EXAMPLE
         //NOTE: You can do that on any methods field etc. as well.

@@ -51,7 +51,7 @@ public class DataManager implements Subscribable
      * Returns an instance of this class
      * @return - instance of the class
      */
-    public static DataManager GetInstance()
+    public static DataManager getInstance()
     {
 
         if(_instance == null)
@@ -196,6 +196,17 @@ public class DataManager implements Subscribable
         if(bridge == null)
             throw new IllegalArgumentException("Failed to add bridge.");
         _bridgeCollection.put(bridge.getId(), bridge);
+    }
+
+    /**
+     * Clears entire data structure.
+     */
+    public void removeAll()
+    {
+        _bridgeCollection.clear();;
+        _groupCollection.clear();
+        _themeCollection.clear();
+        _activeBridgeId = 0;
     }
 
     /**

@@ -72,4 +72,11 @@ public abstract class HueElement
         repOK();
     }
 
+    @Override
+    public String toString()
+    {
+        return "id: " + _id + "\n" + "name: " + _name + "\n";
+    }
+
+
 }

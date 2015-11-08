@@ -1,14 +1,23 @@
 package com.brightlightsystems.core.database;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import com.brightlightsystems.core.database.contracts.BridgeContract;
+import com.brightlightsystems.core.database.contracts.BulbsContract;
+import com.brightlightsystems.core.datastructure.Lightbulb;
+import com.brightlightsystems.core.utilities.notificationsystem.Messages;
 import com.brightlightsystems.core.utilities.notificationsystem.Subscribable;
+import com.brightlightsystems.core.utilities.notificationsystem.Subscriber;
 import com.brightlightsystems.core.utilities.notificationsystem.SystemMessage;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  * Class that creates and handles connection with SQLite database.
@@ -21,16 +30,16 @@ public class DatabaseManager extends SQLiteOpenHelper implements Subscribable
 {
     /**Default path for the database*/
     //TODO: this database path is a subject to change.
-    private static final String CORE_DB_PATH = "/data/data/com.brightlightsystems.core/databases/";
+    private static  String CORE_DB_PATH;
     /**Data base name*/
     private static final String CORE_DB_NAME = "core_data_base";
     /**An instance of the database on the device*/
-    private SQLiteDatabase _dataBase;
+    private SQLiteDatabase _database;
     /**An instance of the context to access app resources and assets.*/
     private final Context _context;
 
     /**
-     * Creates a DatabaseManager with context fpr assets and resources and version name
+     * Creates a DatabaseManager with context for assets and resources as well as version
      * @param context context of the app
      * @param version version of the data base
      */
@@ -38,119 +47,102 @@ public class DatabaseManager extends SQLiteOpenHelper implements Subscribable
     {
         super(context, CORE_DB_NAME, null, version);
         _context = context;
+        if(android.os.Build.VERSION.SDK_INT >= 17)
+            CORE_DB_PATH = context.getApplicationInfo().dataDir + "/databases/";
+        else
+            CORE_DB_PATH = "/data/data/" + context.getPackageName() + "/databases/";
         assert(_context != null);
+        subscribe();
     }
 
     /**
-     * Creates an empty database on the system and rewrites it with provided .db file.
-     * */
+     * Attempts to connect to the data base. If database exists on the system, method
+     * will open read/write connection and loads the data.
+     * If it doesn't, then the method will create an empty database
+     * and will copy the content provided in assets data base over, and then will load all data
+     * @throws IOException if failed to copy the data base
+     */
     public boolean createDataBase() throws IOException
     {
-        //check if the data base already exists on the system
-        if(isAlreadyCreated())
-            return true;
-
-        //lets create an empty database..
-        this.getReadableDatabase();
-        //...and then overwrite with ours
-        try
+        if(!openIfExists())
         {
+            _database = this.getReadableDatabase();
             copyDataBase();
-
-        } catch (IOException e) {
-
-            throw new Error("Error copying database");
-
+            _database.close();
         }
 
+        assert(_database != null);
+        loadData();
         return true;
-
     }
 
+
     /**
-     * Checks if the database already exist to avoid
-     * re-factoring the file each time you open the app.
+     * Opens the database if its already exists on the system.
      * @return true if it exists, false otherwise
      */
-    private boolean isAlreadyCreated()
+    private boolean openIfExists()
     {
-
-        SQLiteDatabase checkDB = null;
-
         try
         {
-            String myPath = CORE_DB_PATH + CORE_DB_NAME;
-            checkDB = SQLiteDatabase.openDatabase(myPath, null, SQLiteDatabase.OPEN_READONLY);
-
+            _database = SQLiteDatabase.openDatabase(CORE_DB_PATH + CORE_DB_NAME, null, SQLiteDatabase.OPEN_READONLY);
         }
         catch(SQLiteException e)
         {
-
-            //database does't exist yet.
-
+            //database does not exist yet.
         }
 
-        if(checkDB != null){
-
-            checkDB.close();
-
-        }
-
-        return checkDB != null ? true : false;
+        return _database != null;
     }
 
+
     /**
-     * Copies your database from your local assets-folder to the just created empty database in the
-     * system folder, from where it can be accessed and handled.
-     * This is done by transfering bytestream.
-     * */
-    private void copyDataBase() throws IOException{
+     * Copies database from the asset folder to the empty database on the
+     * system folder.
+     */
+    private void copyDataBase() throws IOException
+    {
+        //open in and out streams
+        InputStream  input  = _context.getAssets().open(CORE_DB_NAME);
+        OutputStream output = new FileOutputStream(CORE_DB_PATH + CORE_DB_NAME);
 
-        //Open your local db as the input stream
-        InputStream myInput = myContext.getAssets().open(DB_NAME);
-
-        // Path to the just created empty db
-        String outFileName = DB_PATH + DB_NAME;
-
-        //Open the empty db as the output stream
-        OutputStream myOutput = new FileOutputStream(outFileName);
-
-        //transfer bytes from the inputfile to the outputfile
+        //transfer data from the input to output
         byte[] buffer = new byte[1024];
         int length;
-        while ((length = myInput.read(buffer))>0){
-            myOutput.write(buffer, 0, length);
+        while ((length = input.read(buffer))>0)
+        {
+            output.write(buffer, 0, length);
         }
 
         //Close the streams
-        myOutput.flush();
-        myOutput.close();
-        myInput.close();
+        output.flush();
+        output.close();
+        input.close();
 
     }
 
-    public void openDataBase() throws SQLException{
-
-        //Open the database
-        String myPath = DB_PATH + DB_NAME;
-        myDataBase = SQLiteDatabase.openDatabase(myPath, null, SQLiteDatabase.OPEN_READONLY);
-
+    /**
+     * Loads entire data base. Usually done on startup.
+     */
+    public void loadData()
+    {
+        _database = this.getReadableDatabase();
+        BridgeContract.load(_database, _context);
+        BulbsContract.load(_database, _context);
+        _database.close();
     }
 
     @Override
-    public synchronized void close() {
-
-        if(myDataBase != null)
-            myDataBase.close();
-
-        super.close();
+    public void onCreate(SQLiteDatabase db)
+    {
 
     }
 
-
+    @SuppressLint("NewApi")
     @Override
-    public void onCreate(SQLiteDatabase db) {
-
+    public void onConfigure(SQLiteDatabase db)
+    {
+        db.setForeignKeyConstraintsEnabled(true);
     }
 
     @Override
@@ -159,17 +151,109 @@ public class DatabaseManager extends SQLiteOpenHelper implements Subscribable
     }
 
     @Override
-    public void subscribe() {
+    public void subscribe()
+    {
+        Subscriber.subscribe(this, Messages.MSG_ADD_BULB);
+        Subscriber.subscribe(this, Messages.MSG_REMOVE_BULB);
+        Subscriber.subscribe(this, Messages.MSG_UPDATE_SINGLE_BULB);
+        Subscriber.subscribe(this, Messages.MSG_UPDATE_MULTI_BULB);
+        Subscriber.subscribe(this, Messages.MSG_SYNC_BULB_STATE);
 
+        Subscriber.subscribe(this, Messages.MSG_ADD_THEME);
+        Subscriber.subscribe(this, Messages.MSG_REMOVE_THEME);
+        Subscriber.subscribe(this, Messages.MSG_UPDATE_SINGLE_THEME);
+        Subscriber.subscribe(this, Messages.MSG_UPDATE_COMPLEX_THEME);
+        Subscriber.subscribe(this, Messages.MSG_ACTIVATE_THEME);
+        Subscriber.subscribe(this, Messages.MSG_DEACTIVATE_THEME);
+        Subscriber.subscribe(this, Messages.MSG_SYNC_THEMES);
+
+        Subscriber.subscribe(this, Messages.MSG_ADD_GROUP);
+        Subscriber.subscribe(this, Messages.MSG_REMOVE_GROUP);
+        Subscriber.subscribe(this, Messages.MSG_UPDATE_SINGLE_GROUP);
+        Subscriber.subscribe(this, Messages.MSG_UPDATE_COMPLEX_GROUP);
+        Subscriber.subscribe(this, Messages.MSG_ACTIVATE_GROUP);
+        Subscriber.subscribe(this, Messages.MSG_DEACTIVATE_GROUP);
+        Subscriber.subscribe(this, Messages.MSG_SYNC_GROUPS);
     }
 
     @Override
-    public void unsubscribe() {
+    public void unsubscribe()
+    {
+        Subscriber.unsubscribe(this, Messages.MSG_ADD_BULB);
+        Subscriber.unsubscribe(this, Messages.MSG_REMOVE_BULB);
+        Subscriber.unsubscribe(this, Messages.MSG_UPDATE_SINGLE_BULB);
+        Subscriber.unsubscribe(this, Messages.MSG_UPDATE_MULTI_BULB);
+        Subscriber.unsubscribe(this, Messages.MSG_SYNC_BULB_STATE);
 
+        Subscriber.unsubscribe(this, Messages.MSG_ADD_THEME);
+        Subscriber.unsubscribe(this, Messages.MSG_REMOVE_THEME);
+        Subscriber.unsubscribe(this, Messages.MSG_UPDATE_SINGLE_THEME);
+        Subscriber.unsubscribe(this, Messages.MSG_UPDATE_COMPLEX_THEME);
+        Subscriber.unsubscribe(this, Messages.MSG_ACTIVATE_THEME);
+        Subscriber.unsubscribe(this, Messages.MSG_DEACTIVATE_THEME);
+        Subscriber.unsubscribe(this, Messages.MSG_SYNC_THEMES);
+
+        Subscriber.unsubscribe(this, Messages.MSG_ADD_GROUP);
+        Subscriber.unsubscribe(this, Messages.MSG_REMOVE_GROUP);
+        Subscriber.unsubscribe(this, Messages.MSG_UPDATE_SINGLE_GROUP);
+        Subscriber.unsubscribe(this, Messages.MSG_UPDATE_COMPLEX_GROUP);
+        Subscriber.unsubscribe(this, Messages.MSG_ACTIVATE_GROUP);
+        Subscriber.unsubscribe(this, Messages.MSG_DEACTIVATE_GROUP);
+        Subscriber.unsubscribe(this, Messages.MSG_SYNC_GROUPS);
     }
 
     @Override
-    public <T> void onRecieve(SystemMessage<T> message) {
-
+    public <T> void onRecieve(SystemMessage<T> message)
+    {
+        _database = this.getWritableDatabase();
+        switch(message.ID)
+        {
+            case Messages.MSG_ADD_BULB:
+                BulbsContract.add((Lightbulb)message.getAttachment(),_database);
+                break;
+            case Messages.MSG_REMOVE_BULB:
+                BulbsContract.remove((Integer)message.getAttachment(),_database);
+                break;
+            case Messages.MSG_UPDATE_SINGLE_BULB:
+                BulbsContract.update((Lightbulb)message.getAttachment(),_database);
+                break;
+            case Messages.MSG_UPDATE_MULTI_BULB:
+                break;
+            case Messages.MSG_SYNC_BULB_STATE:
+                //TODO: implement this message handler
+                break;
+            case Messages.MSG_ADD_GROUP:
+                break;
+            case Messages.MSG_REMOVE_GROUP:
+                break;
+            case Messages.MSG_UPDATE_SINGLE_GROUP:
+                break;
+            case Messages.MSG_UPDATE_COMPLEX_GROUP:
+                break;
+            case Messages.MSG_ACTIVATE_GROUP:
+                break;
+            case Messages.MSG_DEACTIVATE_GROUP:
+                break;
+            case Messages.MSG_SYNC_GROUPS:
+                //TODO: implement message handler
+                break;
+            case Messages.MSG_ADD_THEME:
+                break;
+            case Messages.MSG_REMOVE_THEME:
+                break;
+            case Messages.MSG_UPDATE_SINGLE_THEME:
+                break;
+            case Messages.MSG_UPDATE_COMPLEX_THEME:
+                break;
+            case Messages.MSG_ACTIVATE_THEME:
+                break;
+            case Messages.MSG_DEACTIVATE_THEME:
+                break;
+            case Messages.MSG_SYNC_THEMES:
+                //TODO: Implement message handler
+                break;
+        }
+        _database.close();
     }
+
 }

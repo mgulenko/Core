@@ -1,15 +1,24 @@
 package com.brightlightsystems.core;
 
-import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.brightlightsystems.core.database.DatabaseManager;
 import com.brightlightsystems.core.datastructure.Bridge;
+import com.brightlightsystems.core.datastructure.BulbColor;
+import com.brightlightsystems.core.datastructure.DataManager;
 import com.brightlightsystems.core.datastructure.Lightbulb;
 import com.brightlightsystems.core.datastructure.Trait;
 import com.brightlightsystems.core.utilities.annotations.Gulenko;
+import com.brightlightsystems.core.utilities.notificationsystem.Messages;
+import com.brightlightsystems.core.utilities.notificationsystem.Publisher;
+import com.brightlightsystems.core.utilities.notificationsystem.SystemMessage;
+
+import java.io.IOException;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -61,12 +70,32 @@ public class MainActivity extends AppCompatActivity {
 
         //CREATING BRIDGE EXAMPLE
 
+        DatabaseManager dm = new DatabaseManager(this,1);
+        try {
+            dm.createDataBase();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        Trait trait = new Trait(new BulbColor(234,222,245,100));
+        Lightbulb bulb = new Lightbulb(11,"AAAAAAAAA","MABLAWAWAWA", trait, Lightbulb.States.ON);
 
 
-        //ANNOTATION EXAMPLE
-        //NOTE: You can do that on any methods field etc. as well.
-        @Gulenko(description = "Your comment goes here")
-        int i = 0;
+        Publisher.publish(new SystemMessage<Lightbulb>(Messages.MSG_UPDATE_SINGLE_BULB, bulb));
+        DataManager.getInstance().removeAll();
+
+        dm.loadData();
+
+
+        for(Map.Entry<Integer,Bridge> v:  DataManager.getInstance().getBridgeCollection().entrySet())
+        {
+            Log.d("ToString", v.toString());
+            for(Lightbulb b : v.getValue().getBulbs())
+            {
+                Log.d("ToString", b.toString());
+            }
+        }
+
     }
 
     @Override

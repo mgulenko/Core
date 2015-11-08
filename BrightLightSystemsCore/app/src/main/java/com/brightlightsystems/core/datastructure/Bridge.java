@@ -25,8 +25,7 @@ public class Bridge extends HueElement
 
     /**
      * Constructs a Hue element with specified id, name, and factory name
-     * @param id   a specified id for new element. Has to be > 0
-     * @param name name of the element.
+     *
      * @param factoryName factory name of the bridge
      * @throws IllegalArgumentException if id < 1 or name == null
      */
@@ -162,6 +161,13 @@ public class Bridge extends HueElement
             assert (e.getValue() != null);
         }
     }
+
+    @Override
+    public String toString()
+    {
+        return "\nBridge: " + _factoryName + "\n" + super.toString();
+    }
+
 
     /******************** end of the class********************************/
 }

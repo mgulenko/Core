@@ -27,15 +27,13 @@ public class Lightbulb extends HueElement
     private States      _state;
 
     /**
-     * Sets next bulb id.
-     * @param nextId next id
+     * Synch next bulb id with the last value in data base.
+     * @param id next id
      */
-    public static void nextBulbIdInit(int nextId)
+    public static void synchNextId(int id)
     {
-        assert (nextId > NEXT_BULB_ID);
-        if(nextId < 1)
-            throw new IllegalArgumentException("Cant initialize next bulb id counter");
-        NEXT_BULB_ID = nextId;
+        if(id >= NEXT_BULB_ID)
+            NEXT_BULB_ID = id + 1;
     }
 
     /**
@@ -60,6 +58,7 @@ public class Lightbulb extends HueElement
         else
             _trait = trait;
         repOk();
+        synchNextId(id);
     }
 
     /**
@@ -70,6 +69,15 @@ public class Lightbulb extends HueElement
     public Lightbulb(Lightbulb bulb)
     {
         this(bulb.getId(), bulb.getFactoryName(), bulb.getName(), bulb.getTrait(), bulb.getState());
+    }
+
+    /**
+     * Get next bulb id
+     * @return next bulb id
+     */
+    public static int getNextBulbId()
+    {
+        return NEXT_BULB_ID;
     }
 
     /**
@@ -135,6 +143,65 @@ public class Lightbulb extends HueElement
         assert(_state       != null);
     }
 
+    /**
+     * Converts id value of the state tro the state of the light bulb
+     * @param stateId id of the state to be converted
+     * @return enum value of the States
+     */
+    public static States intToState(int stateId)
+    {
+        switch (stateId)
+        {
+            case 1:
+                return States.ON;
+            case 2:
+                return States.OFF;
+            case 3:
+                return States.DISCONNECTED;
+        }
+        return States.UNDEFINED;
+    }
+
+    /**
+     * Converts sate value value into int
+     * @param state  of the state to be converted
+     * @return enum value of the States
+     */
+    public static int stateToInt(States state)
+    {
+        switch (state)
+        {
+            case ON:
+                return 1;
+            case OFF:
+                return 2;
+            case DISCONNECTED:
+                return 3;
+            case UNDEFINED:
+                return 4;
+        }
+
+        return -1;
+    }
+
+    @Override
+    public String toString()
+    {
+        String state = "UNDEFINED";
+        switch(_state)
+        {
+            case ON:
+                state = "ON";
+                break;
+            case OFF:
+                state = "OFF";
+                break;
+            case DISCONNECTED:
+                state = "DISCONNECTED";
+        }
+        return "Bulb: " + _factoryName +"\n" + super.toString() +
+                "\n\nTrait: \n" + _trait.toString() + "\n State: " + state +"\n\n";
+    }
 
 
     /**
@@ -144,7 +211,8 @@ public class Lightbulb extends HueElement
     {
         ON,                 // lightbulb is turned on
         OFF,                // lightbulb is turned off
-        DISCONNECTED        // lightbulb is disconnected
+        DISCONNECTED,       // lightbulb is disconnected
+        UNDEFINED           // Undefined state
     }
 
     /******************** end of class********************************/

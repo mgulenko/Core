@@ -151,6 +151,17 @@ public class Bridge extends HueElement
         return _bulbs.remove(bulbId);
     }
 
+    /**
+     * Gets a bulb by its id
+     * @param bulbId bulb id
+     * @return and instance of a lightbulb
+     */
+    public Lightbulb getBulb(int bulbId)
+    {
+        assert (_bulbs != null);
+        return _bulbs.get(bulbId);
+    }
+
 
     private void repOk()
     {

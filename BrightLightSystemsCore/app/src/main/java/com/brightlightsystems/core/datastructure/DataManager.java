@@ -24,11 +24,11 @@ public class DataManager implements Subscribable
     private static DataManager _instance;
 
     /**Map of themes, where K is a theme's id and V is the actual theme*/
-    private static Map<Integer,Theme>      _themeCollection;
-    /**Map of groups, where K is a group's id and V is the actual group*/
-    private static Map<Integer,Group>      _groupCollection;
+    private static Map<Integer,Theme>                    _themeCollection;
+    /**Map of groups, where K is a bridge id and V is another map of group id's to the V of the actual group*/
+    private static Map<Integer, Map<Integer,Group>>      _groupCollection;
     /**Map of bridges, where K is a bridge's id and V is the actual bridge*/
-    private static Map<Integer,Bridge>     _bridgeCollection;
+    private static Map<Integer,Bridge>                     _bridgeCollection;
 
 
 
@@ -104,20 +104,23 @@ public class DataManager implements Subscribable
      * Get a collection of groups
      * @return - collection of groups
      */
-    public Map<Integer,Group> getGroupCollection() {
+    public Map<Integer,Map<Integer,Group>> getGroupCollection() {
         return _groupCollection;
     }
 
     /**
      * Sets a collection of themes
      * @param groupCollection - a specified collection of groups
+     * @param bridgeId Id of the bridge owner of this group
      * @throws IllegalArgumentException if null or contains nulls
      */
-    public void setGroupCollection(Set<Group> groupCollection)
+    public void setGroupCollection(Set<Group> groupCollection, int bridgeId)
     {
         if(groupCollection == null ||groupCollection.contains(null))
             throw new IllegalArgumentException("Failed to create collection of groups.");
-        _groupCollection = (Map<Integer, Group>) DataStructureHelper.hueElementsToLinkedMap(groupCollection);
+
+        Map<Integer,Group> groups = (Map<Integer, Group>) DataStructureHelper.hueElementsToLinkedMap(groupCollection);
+        _groupCollection.put(bridgeId,groups);
         assert(_groupCollection != null);
     }
 
@@ -173,17 +176,32 @@ public class DataManager implements Subscribable
     {
         if(group == null)
             throw new IllegalArgumentException("Failed to add group.");
-        _groupCollection.put(group.getId(), group);
+        int bridgeId = group.getBridgeId();
+        if(_groupCollection.containsKey(bridgeId))
+           _groupCollection.get(bridgeId).put(group.getId(), group);
+        else
+        {
+            Map<Integer,Group> groups = new LinkedHashMap<>();
+            groups.put(group.getId(),group);
+            _groupCollection.put(bridgeId,groups);
+        }
     }
 
     /**
-     * Removes group by specified id.
-     * @param id group id
+     * Removes group
+     * @param group group to be removed
+     * @throws IllegalArgumentException if null
      */
-    public void removeGroup(int id)
+    public void removeGroup(Group group)
     {
-        _groupCollection.remove(id);
-        Publisher.publish(new SystemMessage<Integer>(Messages.MSG_REMOVE_SUBGROUPS, id));
+        if (group == null)
+            throw new IllegalArgumentException("Error removing the group");
+
+        int bridgeId = group.getBridgeId();
+        _groupCollection.get(bridgeId).remove(group.getId());
+        if(_groupCollection.get(bridgeId).isEmpty())
+            _bridgeCollection.remove(bridgeId);
+        Publisher.publish(new SystemMessage<Integer>(Messages.MSG_REMOVE_SUBGROUPS, group.getId()));
     }
 
     /**
@@ -218,6 +236,16 @@ public class DataManager implements Subscribable
         _bridgeCollection.remove(id);
     }
 
+    /**
+     * Gets a lightbulb from the collection of bulbs on the ACTIVE bridge.
+     * @param id bulb id
+     * @return an instance of the lightbulb
+     */
+    public Lightbulb getBulbById(int id)
+    {
+        assert(_bridgeCollection != null);
+        return _bridgeCollection.get(_activeBridgeId).getBulb(id);
+    }
 
     @Override
     public void subscribe()
@@ -296,37 +324,34 @@ public class DataManager implements Subscribable
                 //TODO: implement this message handler
                 break;
             case Messages.MSG_ADD_GROUP:
-            {
-                Group g = (Group)message.getAttachment();
-                _groupCollection.put(g.getId(),g);
-            }
+                addGroup((Group)message.getAttachment());
                 break;
             case Messages.MSG_REMOVE_GROUP:
-                removeGroup(((Integer)message.getAttachment()));
+                removeGroup(((Group)message.getAttachment()));
                 break;
             case Messages.MSG_UPDATE_SINGLE_GROUP:
             {
                 Group g = (Group)message.getAttachment();
-                _groupCollection.get(g.getId()).updateBulbs((Set)g.getBulbs());
+                _groupCollection.get(g.getBridgeId()).get(g.getId()).updateBulbs((Set)g.getBulbs());
             }
                 break;
             case Messages.MSG_UPDATE_COMPLEX_GROUP:
             {
                 Group g = (Group)message.getAttachment();
-                _groupCollection.get(g.getId()).updateBulbs((Set)g.getBulbs());
-                _groupCollection.get(g.getId()).updateGroup((Set)g.getGroups());
+                _groupCollection.get(g.getBridgeId()).get(g.getId()).updateBulbs((Set)g.getBulbs());
+                _groupCollection.get(g.getBridgeId()).get(g.getId()).updateGroup((Set) g.getGroups());
             }
                 break;
             case Messages.MSG_ACTIVATE_GROUP:
             {
                 Group g = (Group) message.getAttachment();
-                _groupCollection.get(g.getId()).activate();
+                _groupCollection.get(g.getBridgeId()).get(g.getId()).activate();
             }
                 break;
             case Messages.MSG_DEACTIVATE_GROUP:
             {
                 Group g = (Group) message.getAttachment();
-                _groupCollection.get(g.getId()).deactivate();
+                _groupCollection.get(g.getBridgeId()).get(g.getId()).deactivate();
             }
                 break;
             case Messages.MSG_SYNC_GROUPS:

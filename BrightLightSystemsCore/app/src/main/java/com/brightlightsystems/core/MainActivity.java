@@ -10,6 +10,7 @@ import com.brightlightsystems.core.database.DatabaseManager;
 import com.brightlightsystems.core.datastructure.Bridge;
 import com.brightlightsystems.core.datastructure.BulbColor;
 import com.brightlightsystems.core.datastructure.DataManager;
+import com.brightlightsystems.core.datastructure.Group;
 import com.brightlightsystems.core.datastructure.Lightbulb;
 import com.brightlightsystems.core.datastructure.Trait;
 import com.brightlightsystems.core.utilities.annotations.Gulenko;
@@ -77,23 +78,19 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        Trait trait = new Trait(new BulbColor(234,222,245,100));
-        Lightbulb bulb = new Lightbulb(11,"AAAAAAAAA","MABLAWAWAWA", trait, Lightbulb.States.ON);
+     //   Trait trait = new Trait(new BulbColor(234,222,245,100));
+      //  Lightbulb bulb = new Lightbulb(Lightbulb.getNextBulbId(),"NEEEEEWWWWWW","MABLAWAWAWA", trait, Lightbulb.States.ON);
 
 
-        Publisher.publish(new SystemMessage<Lightbulb>(Messages.MSG_UPDATE_SINGLE_BULB, bulb));
-        DataManager.getInstance().removeAll();
+      //  Publisher.publish(new SystemMessage<Lightbulb>(Messages.MSG_ADD_BULB, bulb));
+       // DataManager.getInstance().removeAll();
 
         dm.loadData();
 
 
-        for(Map.Entry<Integer,Bridge> v:  DataManager.getInstance().getBridgeCollection().entrySet())
+        for(Map.Entry<Integer,Group> v:  DataManager.getInstance().getGroupCollection().get(DataManager.getActiveBridgeId()).entrySet())
         {
-            Log.d("ToString", v.toString());
-            for(Lightbulb b : v.getValue().getBulbs())
-            {
-                Log.d("ToString", b.toString());
-            }
+            Log.d("ToString", v.getValue().toString());
         }
 
     }

@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import com.brightlightsystems.core.database.contracts.BridgeContract;
 import com.brightlightsystems.core.database.contracts.BulbsContract;
+import com.brightlightsystems.core.database.contracts.GroupsContract;
 import com.brightlightsystems.core.datastructure.Lightbulb;
 import com.brightlightsystems.core.utilities.notificationsystem.Messages;
 import com.brightlightsystems.core.utilities.notificationsystem.Subscribable;
@@ -18,6 +19,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Set;
 
 /**
  * Class that creates and handles connection with SQLite database.
@@ -123,12 +125,17 @@ public class DatabaseManager extends SQLiteOpenHelper implements Subscribable
 
     /**
      * Loads entire data base. Usually done on startup.
+     * IMPORTANT: THE INNER ORDER OF METHOD CALLS MATTERS.
      */
     public void loadData()
     {
         _database = this.getReadableDatabase();
+        //loading bridges data
         BridgeContract.load(_database, _context);
+        //loading light bulbs data
         BulbsContract.load(_database, _context);
+        //loading groups data
+        GroupsContract.load(_database,_context);
         _database.close();
     }
 
@@ -218,6 +225,13 @@ public class DatabaseManager extends SQLiteOpenHelper implements Subscribable
                 BulbsContract.update((Lightbulb)message.getAttachment(),_database);
                 break;
             case Messages.MSG_UPDATE_MULTI_BULB:
+            {
+                Set<Lightbulb> bulbs = (Set<Lightbulb>) message.getAttachment();
+                for(Lightbulb bulb : bulbs)
+                {
+                    BulbsContract.update(bulb,_database);
+                }
+            }
                 break;
             case Messages.MSG_SYNC_BULB_STATE:
                 //TODO: implement this message handler

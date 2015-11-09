@@ -38,8 +38,14 @@ public class Group extends HueElement implements Subscribable
      * List of groups that represent this group. Can't be null, can't contains nulls
      */
     private Map<Integer,Group> _groups;
+
     /**Flag that indicates if this group is active*/
     private boolean _activated;
+
+    /**
+     * Identifier of the bridge  that contains this group
+     */
+    private final int _bridgeID;
 
     /**
      * Sets next group id.
@@ -58,11 +64,13 @@ public class Group extends HueElement implements Subscribable
      * @param id group id
      * @param name name of the group
      */
-    public Group(int id, String name)
+    public Group(int id, String name, int bridgeId)
     {
         super(id, name);
         _bulbs  = new LinkedHashMap<>(Bridge.INIT_BULB_COUNT);
         _groups = new LinkedHashMap<>(INIT_GROUP_COUNT);
+        _activated = false;
+        _bridgeID = bridgeId;
         assert(_bulbs  != null);
         assert(_groups != null);
     }
@@ -74,7 +82,7 @@ public class Group extends HueElement implements Subscribable
      * @param bulbs set of light bulbs.
      * @throws IllegalArgumentException if bulbs == null or contain nulls
      */
-    public Group(int id, String name, Set<Lightbulb> bulbs)
+    public Group(int id, String name, Set<Lightbulb> bulbs, int bridgeId)
     {
         super(id, name);
         if(bulbs == null || bulbs.contains(null))
@@ -82,6 +90,8 @@ public class Group extends HueElement implements Subscribable
 
         _bulbs  = (Map<Integer, Lightbulb>) DataStructureHelper.hueElementsToLinkedMap(bulbs);
         _groups = new LinkedHashMap<>(INIT_GROUP_COUNT);
+        _activated = false;
+        _bridgeID = bridgeId;
         assert(_bulbs  != null);
         assert(_groups != null);
     }
@@ -100,6 +110,15 @@ public class Group extends HueElement implements Subscribable
         {
             assert(e.getValue() != null);
         }
+    }
+
+    /**
+     * Gets a bridge id that owns this group
+     * @return bridge owner of this group
+     */
+    public int getBridgeId()
+    {
+        return _bridgeID;
     }
 
 
@@ -308,8 +327,26 @@ public class Group extends HueElement implements Subscribable
         _activated = false;
     }
 
+    @Override
+    public String toString()
+    {
+        String str = "\nGroup: " + getId() + "   Name: "+ getName() + "   On a Bridge: " + _bridgeID + "\n\n" +
+                "Contains following bulbs: \n\n\t\t";
+        for(Map.Entry<Integer, Lightbulb> e: _bulbs.entrySet())
+        {
+            str += e.getValue().toString();
+        }
 
+        if(_groups.isEmpty())
+            return str;
 
+        str += "Contains following subgroups: \n\n\t\t";
+        for(Map.Entry<Integer,Group> e: _groups.entrySet())
+        {
+            str += e.getValue().toString();
+        }
+        return str;
+    }
 
     @Override
     public void subscribe()

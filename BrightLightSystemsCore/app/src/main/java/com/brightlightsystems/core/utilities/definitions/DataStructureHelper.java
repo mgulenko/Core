@@ -16,7 +16,7 @@ public abstract class DataStructureHelper
 {
     /**
      * Method converts a set of HueElement to the ordered map, where K is an Integer id value of the
-     * elementand V is the actual element.
+     * element and V is the actual element.
      * @param set data set of elements that needs to be converted.
      * @return map with new values.
      * @throws IllegalArgumentException if set is null.
@@ -33,5 +33,4 @@ public abstract class DataStructureHelper
         assert(map != null);
         return map;
     }
-
 }

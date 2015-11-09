@@ -1,8 +1,8 @@
 package com.brightlightsystems.core.utilities.definitions;
 
         import java.util.Collection;
-        import java.util.HashMap;
         import java.util.HashSet;
+        import java.util.LinkedHashMap;
         import java.util.Set;
         import java.util.Map;
 
@@ -25,7 +25,7 @@ public class MultiMap<K,V>
 
     public MultiMap()
     {
-        _map = new HashMap<>();
+        _map = new LinkedHashMap<>();
     }
 
     /**

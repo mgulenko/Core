@@ -23,7 +23,9 @@ public abstract class BulbsContract
 
     /**
      * Method loads data from the bridges table
-     * @param db data base to read the data frim
+     * @param db data base to read the data from
+     * @param context context of the application to access resources
+     * @throws IllegalArgumentException when db or context == null
      */
     public static void load(SQLiteDatabase db, Context context)
     {
@@ -55,41 +57,34 @@ public abstract class BulbsContract
                 DataManager.getInstance().getBridgeCollection().get(bridgeId).addBulb(bulb);
                 cursor.moveToNext();
             }
-
             cursor.close();
         }
     }
 
+    /**
+     * Method adds new lightbulb into the database.
+     * @param bulb lightbulb to add.
+     * @param db data base to read the data from
+     * @throws IllegalArgumentException when bulb or db == null
+     * @throws Error if was not able to add the entry
+     */
     public static void add(Lightbulb bulb, SQLiteDatabase db)
     {
         if(bulb == null || db == null)
             throw new IllegalArgumentException("Incorrect parameters");
 
-        int id = bulb.getId();
-        String factoryName = bulb.getFactoryName();
-        String userDefName = bulb.getName();
-        int stateId  = Lightbulb.stateToInt(bulb.getState());
-        if(stateId < 1)
-            throw new Error("Negative state identifier");
-
-        int bridgeId = DataManager.getActiveBridgeId();
-        int color = bulb.getTrait().getColor().getColor();
-        int brightness = bulb.getTrait().getBrightness();
-
-        ContentValues values = new ContentValues();
-        values.put(BulbsEntry.COLUMN_NAME_BULB_ID, id);
-        values.put(BulbsEntry.COLUMN_NAME_FACTORY_NAME, factoryName);
-        values.put(BulbsEntry.COLUMN_NAME_USER_DEF_NAME, userDefName);
-        values.put(BulbsEntry.COLUMN_NAME_STATE_ID, stateId);
-        values.put(BulbsEntry.COLUMN_NAME_BRIDGE_ID, bridgeId);
-        values.put(BulbsEntry.COLUMN_NAME_BULB_COLOR, color);
-        values.put(BulbsEntry.COLUMN_NAME_BULB_BRIGHTNESS, brightness);
-
-
+        ContentValues values = initValues(bulb);
         if(db.insert(BulbsEntry.TABLE_NAME, null, values) == -1)
             throw new Error("Failed to add data into bulbs");
     }
 
+    /**
+     * Removes a bulb from the database
+     * @param id id of the light bulb to be removed
+     * @param db database to modify
+     * @throws IllegalArgumentException if db == null
+     * @throws Error if was not able to remove the entry
+     */
     public static void remove(int id, SQLiteDatabase db)
     {
         if(db == null)
@@ -98,12 +93,33 @@ public abstract class BulbsContract
             throw new Error("Failed while removing data");
     }
 
+    /**
+     * Updates a bulb in the database
+     * @param bulb lightbulb to add.
+     * @param db database to modify
+     * @throws IllegalArgumentException when bulb or db == null
+     * @throws Error if was not able to update the entry
+     */
     public static void update(Lightbulb bulb, SQLiteDatabase db)
     {
         if(bulb == null || db == null)
             throw new IllegalArgumentException("Incorrect parameters");
 
         int id = bulb.getId();
+
+        ContentValues values = initValues(bulb);
+        if(db.update(BulbsEntry.TABLE_NAME, values, "_id = " + id, null) < 1)
+            throw new Error("Something went wrong while updating");
+    }
+
+
+    /**
+     * Routine that initializes content values.
+     * @param bulb a light bulb whose metadata is used to fill up content values container
+     * @return container that consists of values for the database query.
+     */
+    private static ContentValues initValues(Lightbulb bulb)
+    {
         String factoryName = bulb.getFactoryName();
         String userDefName = bulb.getName();
         int stateId  = Lightbulb.stateToInt(bulb.getState());
@@ -121,12 +137,7 @@ public abstract class BulbsContract
         values.put(BulbsEntry.COLUMN_NAME_BRIDGE_ID, bridgeId);
         values.put(BulbsEntry.COLUMN_NAME_BULB_COLOR, color);
         values.put(BulbsEntry.COLUMN_NAME_BULB_BRIGHTNESS, brightness);
-
-
-        if(db.update(BulbsEntry.TABLE_NAME, values,"_id = " + id, null) < 1)
-            throw new Error("Something went wrong while updating");
-
-
+        return values;
     }
 
 

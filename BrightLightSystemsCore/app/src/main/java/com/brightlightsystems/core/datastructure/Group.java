@@ -18,35 +18,26 @@ import java.util.Set;
  */
 public class Group extends HueElement implements Subscribable
 {
-    /**
-     * Initial indicator how much elemnts to store in the _collection
-     */
+    /**Initial indicator how much elemnts to store in the _collection*/
     private static final byte INIT_GROUP_COUNT = 16;
 
-    /**
-     * Id that will be used for the next bulb. IMPORTANT: value must be in sync with the database.
-     * TODO: Add mechanism that validates synchronization
-     */
+    /**Id that will be used for the next bulb. IMPORTANT: value must be in sync with the database.*/
+     // TODO: Add mechanism that validates synchronization
     private static int NEXT_GROUP_ID = 1;
 
-    /**
-     * Set of the light bulbs that are stored in this group. Can't contain dupes.
-     * Can't be null, can't contains nulls
-     */
+    /**Set of the light bulbs that are stored in this group.Can't be null, can't contains nulls*/
     private Map<Integer,Lightbulb> _bulbs;
-    /**
-     * List of groups that represent this group. Can't be null, can't contains nulls
-     */
+
+    /**List of groups that represent this group. Can't be null, can't contains nulls*/
     private Map<Integer,Group> _groups;
 
     /**Flag that indicates if this group is active*/
     private boolean _activated;
 
-    /**
-     * Identifier of the bridge  that contains this group
-     */
+    /**Identifier of the bridge  that contains this group*/
     private final int _bridgeID;
 
+    private boolean _favorite;
     /**
      * Sets next group id.
      * @param nextId next id
@@ -64,13 +55,15 @@ public class Group extends HueElement implements Subscribable
      * @param id group id
      * @param name name of the group
      */
-    public Group(int id, String name, int bridgeId)
+    public Group(int id, String name, int bridgeId, boolean favorite,boolean activated)
     {
         super(id, name);
         _bulbs  = new LinkedHashMap<>(Bridge.INIT_BULB_COUNT);
         _groups = new LinkedHashMap<>(INIT_GROUP_COUNT);
         _activated = false;
         _bridgeID = bridgeId;
+        _favorite = favorite;
+        _activated = activated;
         assert(_bulbs  != null);
         assert(_groups != null);
     }
@@ -82,7 +75,7 @@ public class Group extends HueElement implements Subscribable
      * @param bulbs set of light bulbs.
      * @throws IllegalArgumentException if bulbs == null or contain nulls
      */
-    public Group(int id, String name, Set<Lightbulb> bulbs, int bridgeId)
+    public Group(int id, String name, Set<Lightbulb> bulbs, int bridgeId, boolean favorite, boolean activated)
     {
         super(id, name);
         if(bulbs == null || bulbs.contains(null))
@@ -92,6 +85,8 @@ public class Group extends HueElement implements Subscribable
         _groups = new LinkedHashMap<>(INIT_GROUP_COUNT);
         _activated = false;
         _bridgeID = bridgeId;
+        _favorite = favorite;
+        _activated = activated;
         assert(_bulbs  != null);
         assert(_groups != null);
     }
@@ -347,6 +342,29 @@ public class Group extends HueElement implements Subscribable
         }
         return str;
     }
+
+    /**
+     * Asks the group if its belong to favorite category
+     * @return true if was added to favorites, false otherwise
+     */
+    public boolean isFavorite()
+    {
+        return _favorite;
+    }
+
+    /**
+     * Adds group to favorite
+     */
+    public void addToFavorites()
+    {
+        _favorite = true;
+    }
+
+    /**
+     * Removes from favorite category.
+     */
+    public void removeFromFavorites(){_favorite = false;}
+
 
     @Override
     public void subscribe()

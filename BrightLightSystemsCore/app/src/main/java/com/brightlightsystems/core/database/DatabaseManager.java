@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import com.brightlightsystems.core.database.contracts.BridgeContract;
 import com.brightlightsystems.core.database.contracts.BulbsContract;
 import com.brightlightsystems.core.database.contracts.GroupsContract;
+import com.brightlightsystems.core.datastructure.Group;
 import com.brightlightsystems.core.datastructure.Lightbulb;
 import com.brightlightsystems.core.utilities.notificationsystem.Messages;
 import com.brightlightsystems.core.utilities.notificationsystem.Subscribable;
@@ -237,12 +238,21 @@ public class DatabaseManager extends SQLiteOpenHelper implements Subscribable
                 //TODO: implement this message handler
                 break;
             case Messages.MSG_ADD_GROUP:
+                GroupsContract.add((Group)message.getAttachment(),_database);
                 break;
             case Messages.MSG_REMOVE_GROUP:
                 break;
             case Messages.MSG_UPDATE_SINGLE_GROUP:
+                GroupsContract.update((Group)message.getAttachment(),_database);
                 break;
             case Messages.MSG_UPDATE_COMPLEX_GROUP:
+            {
+                Set<Group> groups = (Set<Group>) message.getAttachment();
+                for(Group g : groups)
+                {
+                    GroupsContract.update(g,_database);
+                }
+            }
                 break;
             case Messages.MSG_ACTIVATE_GROUP:
                 break;

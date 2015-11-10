@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.provider.BaseColumns;
 
+import com.brightlightsystems.core.R;
 import com.brightlightsystems.core.datastructure.DataManager;
 import com.brightlightsystems.core.datastructure.Group;
 import com.brightlightsystems.core.datastructure.Lightbulb;
@@ -92,7 +93,7 @@ public abstract class GroupsContract
     private static void processHomeEditionSG(SQLiteDatabase db)
     {
         DataManager dm = DataManager.getInstance();
-        Map<Integer, Group> map = dm.getGroupCollection().get(dm.getActiveBridgeId());
+        Map<Integer, Group> map = dm.getGroupCollection().get(DataManager.getActiveBridgeId());
 
         for(Map.Entry<Integer,Group> e: map.entrySet())
         {
@@ -221,7 +222,7 @@ public abstract class GroupsContract
         public static final String COLUMN_NAME_GROUP_NAME       = "group_name";
         public static final String COLUMN_NAME_BRIDGE_ID        = "bridge_id";
         public static final String COLUMN_NAME_ACTIVATED        = "activated";
-        public static final String COLUMN_NAME_FAVORITES        = "favorites";
+        public static final String COLUMN_NAME_FAVORITES        = "favorite";
 
     }
 

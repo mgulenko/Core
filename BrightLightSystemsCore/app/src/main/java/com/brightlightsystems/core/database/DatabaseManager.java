@@ -54,7 +54,6 @@ public class DatabaseManager extends SQLiteOpenHelper implements Subscribable
             CORE_DB_PATH = context.getApplicationInfo().dataDir + "/databases/";
         else
             CORE_DB_PATH = "/data/data/" + context.getPackageName() + "/databases/";
-        assert(_context != null);
         subscribe();
     }
 
@@ -136,7 +135,7 @@ public class DatabaseManager extends SQLiteOpenHelper implements Subscribable
         //loading light bulbs data
         BulbsContract.load(_database, _context);
         //loading groups data
-        GroupsContract.load(_database,_context);
+        GroupsContract.load(_database, _context);
         _database.close();
     }
 

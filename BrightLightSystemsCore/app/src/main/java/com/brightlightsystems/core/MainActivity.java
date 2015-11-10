@@ -82,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
       //  Lightbulb bulb = new Lightbulb(Lightbulb.getNextBulbId(),"NEEEEEWWWWWW","MABLAWAWAWA", trait, Lightbulb.States.ON);
 
 
+        Publisher.publish(new SystemMessage<Integer>(Messages.MSG_REMOVE_BULB, 1));
       //  Publisher.publish(new SystemMessage<Lightbulb>(Messages.MSG_ADD_BULB, bulb));
        // DataManager.getInstance().removeAll();
 

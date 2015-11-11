@@ -6,9 +6,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import com.brightlightsystems.core.database.contracts.BridgeContract;
-import com.brightlightsystems.core.database.contracts.BulbsContract;
-import com.brightlightsystems.core.database.contracts.GroupsContract;
 import com.brightlightsystems.core.datastructure.Group;
 import com.brightlightsystems.core.datastructure.Lightbulb;
 import com.brightlightsystems.core.utilities.notificationsystem.Messages;
@@ -176,8 +173,8 @@ public class DatabaseManager extends SQLiteOpenHelper implements Subscribable
 
         Subscriber.subscribe(this, Messages.MSG_ADD_GROUP);
         Subscriber.subscribe(this, Messages.MSG_REMOVE_GROUP);
-        Subscriber.subscribe(this, Messages.MSG_UPDATE_SINGLE_GROUP);
-        Subscriber.subscribe(this, Messages.MSG_UPDATE_COMPLEX_GROUP);
+        Subscriber.subscribe(this, Messages.MSG_UPDATE_GROUP);
+        Subscriber.subscribe(this, Messages.MSG_UPDATE_MULTI_GROUP);
         Subscriber.subscribe(this, Messages.MSG_ACTIVATE_GROUP);
         Subscriber.subscribe(this, Messages.MSG_DEACTIVATE_GROUP);
         Subscriber.subscribe(this, Messages.MSG_SYNC_GROUPS);
@@ -202,8 +199,8 @@ public class DatabaseManager extends SQLiteOpenHelper implements Subscribable
 
         Subscriber.unsubscribe(this, Messages.MSG_ADD_GROUP);
         Subscriber.unsubscribe(this, Messages.MSG_REMOVE_GROUP);
-        Subscriber.unsubscribe(this, Messages.MSG_UPDATE_SINGLE_GROUP);
-        Subscriber.unsubscribe(this, Messages.MSG_UPDATE_COMPLEX_GROUP);
+        Subscriber.unsubscribe(this, Messages.MSG_UPDATE_GROUP);
+        Subscriber.unsubscribe(this, Messages.MSG_UPDATE_MULTI_GROUP);
         Subscriber.unsubscribe(this, Messages.MSG_ACTIVATE_GROUP);
         Subscriber.unsubscribe(this, Messages.MSG_DEACTIVATE_GROUP);
         Subscriber.unsubscribe(this, Messages.MSG_SYNC_GROUPS);
@@ -241,17 +238,11 @@ public class DatabaseManager extends SQLiteOpenHelper implements Subscribable
                 break;
             case Messages.MSG_REMOVE_GROUP:
                 break;
-            case Messages.MSG_UPDATE_SINGLE_GROUP:
+            case Messages.MSG_UPDATE_GROUP:
                 GroupsContract.update((Group)message.getAttachment(),_database);
                 break;
-            case Messages.MSG_UPDATE_COMPLEX_GROUP:
-            {
-                Set<Group> groups = (Set<Group>) message.getAttachment();
-                for(Group g : groups)
-                {
-                    GroupsContract.update(g,_database);
-                }
-            }
+            case Messages.MSG_UPDATE_MULTI_GROUP:
+            //TODO: implement message handler
                 break;
             case Messages.MSG_ACTIVATE_GROUP:
                 break;

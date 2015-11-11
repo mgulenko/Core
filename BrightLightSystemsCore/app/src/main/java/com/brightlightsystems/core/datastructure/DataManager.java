@@ -188,7 +188,7 @@ public class DataManager implements Subscribable
     }
 
     /**
-     * Removes group
+     * Removes group.
      * @param group group to be removed
      * @throws IllegalArgumentException if null
      */
@@ -201,7 +201,7 @@ public class DataManager implements Subscribable
         _groupCollection.get(bridgeId).remove(group.getId());
         if(_groupCollection.get(bridgeId).isEmpty())
             _bridgeCollection.remove(bridgeId);
-        Publisher.publish(new SystemMessage<Integer>(Messages.MSG_REMOVE_SUBGROUPS, group.getId()));
+        Publisher.publish(new SystemMessage<>(Messages.MSG_REMOVE_SUBGROUPS, group.getId()));
     }
 
     /**
@@ -266,8 +266,8 @@ public class DataManager implements Subscribable
 
         Subscriber.subscribe(this, Messages.MSG_ADD_GROUP);
         Subscriber.subscribe(this, Messages.MSG_REMOVE_GROUP);
-        Subscriber.subscribe(this, Messages.MSG_UPDATE_SINGLE_GROUP);
-        Subscriber.subscribe(this, Messages.MSG_UPDATE_COMPLEX_GROUP);
+        Subscriber.subscribe(this, Messages.MSG_UPDATE_GROUP);
+        Subscriber.subscribe(this, Messages.MSG_UPDATE_MULTI_GROUP);
         Subscriber.subscribe(this, Messages.MSG_ACTIVATE_GROUP);
         Subscriber.subscribe(this, Messages.MSG_DEACTIVATE_GROUP);
         Subscriber.subscribe(this, Messages.MSG_SYNC_GROUPS);
@@ -292,8 +292,8 @@ public class DataManager implements Subscribable
 
         Subscriber.unsubscribe(this, Messages.MSG_ADD_GROUP);
         Subscriber.unsubscribe(this, Messages.MSG_REMOVE_GROUP);
-        Subscriber.unsubscribe(this, Messages.MSG_UPDATE_SINGLE_GROUP);
-        Subscriber.unsubscribe(this, Messages.MSG_UPDATE_COMPLEX_GROUP);
+        Subscriber.unsubscribe(this, Messages.MSG_UPDATE_GROUP);
+        Subscriber.unsubscribe(this, Messages.MSG_UPDATE_MULTI_GROUP);
         Subscriber.unsubscribe(this, Messages.MSG_ACTIVATE_GROUP);
         Subscriber.unsubscribe(this, Messages.MSG_DEACTIVATE_GROUP);
         Subscriber.unsubscribe(this, Messages.MSG_SYNC_GROUPS);
@@ -329,18 +329,14 @@ public class DataManager implements Subscribable
             case Messages.MSG_REMOVE_GROUP:
                 removeGroup(((Group)message.getAttachment()));
                 break;
-            case Messages.MSG_UPDATE_SINGLE_GROUP:
+            case Messages.MSG_UPDATE_GROUP:
             {
                 Group g = (Group)message.getAttachment();
                 _groupCollection.get(g.getBridgeId()).get(g.getId()).updateBulbs((Set)g.getBulbs());
             }
                 break;
-            case Messages.MSG_UPDATE_COMPLEX_GROUP:
-            {
-                Group g = (Group)message.getAttachment();
-                _groupCollection.get(g.getBridgeId()).get(g.getId()).updateBulbs((Set)g.getBulbs());
-                _groupCollection.get(g.getBridgeId()).get(g.getId()).updateGroup((Set) g.getGroups());
-            }
+            case Messages.MSG_UPDATE_MULTI_GROUP:
+            //TODO: implement message handler
                 break;
             case Messages.MSG_ACTIVATE_GROUP:
             {

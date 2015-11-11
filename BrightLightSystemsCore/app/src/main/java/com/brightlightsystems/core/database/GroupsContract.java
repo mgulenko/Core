@@ -1,4 +1,4 @@
-package com.brightlightsystems.core.database.contracts;
+package com.brightlightsystems.core.database;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -17,7 +17,7 @@ import java.util.Map;
  * This class is a contract class for the table Bulbs in the database
  * @author Michael Gulenko. Created on 10/20/2015.
  */
-public abstract class GroupsContract
+abstract class GroupsContract
 {
     /**Empty constructor to prevent from instantiating */
     private GroupsContract(){}
@@ -28,7 +28,7 @@ public abstract class GroupsContract
      * @param context context of the application to access resources
      * @throws IllegalArgumentException when db or context == null
      */
-    public static void load(SQLiteDatabase db, Context context)
+    static void load(SQLiteDatabase db, Context context)
     {
         if(context == null || db == null)
             throw new IllegalArgumentException("Incorrect parameters");
@@ -124,7 +124,7 @@ public abstract class GroupsContract
      * @throws IllegalArgumentException when bulb or db == null
      * @throws Error if was not able to add the entry
      */
-    public static void add(Group group, SQLiteDatabase db)
+    static void add(Group group, SQLiteDatabase db)
     {
         if(group == null || db == null)
             throw new IllegalArgumentException("Incorrect parameters");
@@ -163,15 +163,18 @@ public abstract class GroupsContract
     }
 
     /**
-     * Removes a bulb from the database
+     * Removes a group from the database
      * @param id id of the light bulb to be removed
      * @param db database to modify
      * @throws IllegalArgumentException if db == null
      * @throws Error if was not able to remove the entry
      */
-    public static void remove(int id, SQLiteDatabase db)
+    static void remove(int id, SQLiteDatabase db)
     {
-
+        if(db == null)
+            throw new IllegalArgumentException("Incorrect parameters");
+        if (db.delete(GroupEntry.TABLE_NAME, GroupEntry.COLUMN_NAME_GROUP_ID + "=" + id, null) != 1)
+            throw new Error("Failed while removing data");
     }
 
     /**
@@ -181,7 +184,7 @@ public abstract class GroupsContract
      * @throws IllegalArgumentException when bulb or db == null
      * @throws Error if was not able to update the entry
      */
-    public static void update(Group group, SQLiteDatabase db)
+    static void update(Group group, SQLiteDatabase db)
     {
         if(group == null || db == null)
             throw new IllegalArgumentException("Incorrect parameters");
@@ -191,6 +194,56 @@ public abstract class GroupsContract
         ContentValues values = initValues(group);
         if(db.update(GroupEntry.TABLE_NAME, values, "_id = " + id, null) < 1)
             throw new Error("Something went wrong while updating");
+
+        //update bulb_group table
+        if(group.bulbCount() != 0)
+        {
+            //First create a string of of bulb ids for the remove query
+            //insert new rows if needed
+            String bulbIds = "(";
+            String insertStatement = "INSERT OR IGNORE INTO " + BulbGroupEntry.TABLE_NAME +"(" +
+                                     BulbGroupEntry.COLUMN_NAME_GROUP_ID + ", " +
+                                     BulbGroupEntry.COLUMN_NAME_BULB_ID +") VALUES(";
+            for(Lightbulb b: group.getBulbs())
+            {
+                String query = insertStatement + group.getId() + b.getId() + ")";
+                db.rawQuery(query,null);
+                bulbIds += (b.getId() + ",");
+            }
+
+            //remove old entries
+            bulbIds = bulbIds.substring(0,bulbIds.length() - 1);
+            String query  = "DELETE FROM " + BulbGroupEntry.TABLE_NAME +
+                            " WHERE " + BulbGroupEntry.COLUMN_NAME_GROUP_ID + " = " + group.getId()+
+                            " AND " +
+                            BulbGroupEntry.COLUMN_NAME_BULB_ID + " NOT IN " + bulbIds + ")";
+            db.rawQuery(query, null);
+        }
+
+        //update complex group table
+        if(group.groupCount() != 0)
+        {
+            //First create a string of of group ids for the remove query
+            //insert new rows if needed
+            String groupIds = "(";
+            String insertStatement = "INSERT OR IGNORE INTO " + SubGroupEntry.TABLE_NAME +"(" +
+                    SubGroupEntry.COLUMN_NAME_GROUP_ID + ", " +
+                    SubGroupEntry.COLUMN_NAME_SUBGROUP_ID +") VALUES(";
+            for(Group g: group.getGroups())
+            {
+                String query = insertStatement + group.getId() + g.getId() + ")";
+                db.rawQuery(query,null);
+                groupIds += (g.getId() + ",");
+            }
+
+            //remove old entries
+            groupIds = groupIds.substring(0,groupIds.length() - 1);
+            String query  = "DELETE FROM " + SubGroupEntry.TABLE_NAME +
+                    " WHERE " + SubGroupEntry.COLUMN_NAME_GROUP_ID + " = " + group.getId()+
+                    " AND " +
+                    SubGroupEntry.COLUMN_NAME_SUBGROUP_ID + " NOT IN " + groupIds + ")";
+            db.rawQuery(query, null);
+        }
     }
 
     /**
@@ -215,7 +268,7 @@ public abstract class GroupsContract
 
 
     /**Inner class that defines table content*/
-    public abstract class GroupEntry implements BaseColumns
+    abstract class GroupEntry implements BaseColumns
     {
         public static final String TABLE_NAME                   = "groups";
         public static final String COLUMN_NAME_GROUP_ID         = "_id";
@@ -236,7 +289,7 @@ public abstract class GroupsContract
     }
 
     /**Inner class that defines table content*/
-    public abstract class SubGroupEntry implements BaseColumns
+    abstract class SubGroupEntry implements BaseColumns
     {
         public static final String TABLE_NAME                   = "groups_subgroups";
         public static final String COLUMN_NAME_GROUP_ID         = "group_id";

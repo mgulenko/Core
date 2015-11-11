@@ -1,4 +1,4 @@
-package com.brightlightsystems.core.database.contracts;
+package com.brightlightsystems.core.database;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -9,14 +9,12 @@ import com.brightlightsystems.core.R;
 import com.brightlightsystems.core.datastructure.Bridge;
 import com.brightlightsystems.core.datastructure.DataManager;
 
-import java.util.ResourceBundle;
-
 
 /**
  * This class is a contract class for the table Bridges in the database
  * @author Michael Gulenko. Created on 10/20/2015.
  */
-public abstract class BridgeContract
+abstract class BridgeContract
 {
     /**Empty constructor to prevent from instantiating */
     private BridgeContract(){}
@@ -25,7 +23,7 @@ public abstract class BridgeContract
      * Method loads data from the bridges table
      * @param db data base to read the data frim
      */
-    public static void load(SQLiteDatabase db, Context context)
+    static void load(SQLiteDatabase db, Context context)
     {
         assert (db != null);
         assert (context != null);
@@ -58,7 +56,7 @@ public abstract class BridgeContract
 
 
     /**Inner class that defines table content*/
-    public abstract class BridgeEntry implements BaseColumns
+    abstract class BridgeEntry implements BaseColumns
     {
         public static final String TABLE_NAME                   = "bridges";
         public static final String COLUMN_NAME_BRIDGE_ID        = "_id";

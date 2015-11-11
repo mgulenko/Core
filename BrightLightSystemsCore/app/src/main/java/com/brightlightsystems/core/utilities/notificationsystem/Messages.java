@@ -48,7 +48,7 @@ public abstract class Messages
     public static final int MSG_ADD_GROUP               = 0x0006;
     /**
      * Notifies the system that a group needs to be removed.
-     * SystemMessage type: Integer (for the group id)
+     * SystemMessage type: Group.
      */
     public static final int MSG_REMOVE_GROUP            = 0x0007;
     /**
@@ -60,12 +60,12 @@ public abstract class Messages
      * Notifies the system that a group needs to be updated.
      * SystemMessage type: Group
      */
-    public static final int MSG_UPDATE_SINGLE_GROUP     = 0x0009;
+    public static final int MSG_UPDATE_GROUP            = 0x0009;
     /**
      * Notifies the system that a complex group needs to be updated.
-     * SystemMessage type: Group
+     * SystemMessage type: Set<Group>
      */
-    public static final int MSG_UPDATE_COMPLEX_GROUP    = 0x000A;
+    public static final int MSG_UPDATE_MULTI_GROUP      = 0x000A;
     /**
      * Notifies the system that a group needs to be activated.
      * SystemMessage type: Group

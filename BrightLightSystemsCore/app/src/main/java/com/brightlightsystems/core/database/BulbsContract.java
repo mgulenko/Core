@@ -1,4 +1,4 @@
-package com.brightlightsystems.core.database.contracts;
+package com.brightlightsystems.core.database;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -16,7 +16,7 @@ import com.brightlightsystems.core.datastructure.Trait;
  * This class is a contract class for the table Bulbs in the database
  * @author Michael Gulenko. Created on 10/20/2015.
  */
-public abstract class BulbsContract
+abstract class BulbsContract
 {
     /**Empty constructor to prevent from instantiating */
     private BulbsContract(){}
@@ -27,7 +27,7 @@ public abstract class BulbsContract
      * @param context context of the application to access resources
      * @throws IllegalArgumentException when db or context == null
      */
-    public static void load(SQLiteDatabase db, Context context)
+    static void load(SQLiteDatabase db, Context context)
     {
         if(context == null || db == null)
             throw new IllegalArgumentException("Incorrect parameters");
@@ -68,7 +68,7 @@ public abstract class BulbsContract
      * @throws IllegalArgumentException when bulb or db == null
      * @throws Error if was not able to add the entry
      */
-    public static void add(Lightbulb bulb, SQLiteDatabase db)
+    static void add(Lightbulb bulb, SQLiteDatabase db)
     {
         if(bulb == null || db == null)
             throw new IllegalArgumentException("Incorrect parameters");
@@ -85,7 +85,7 @@ public abstract class BulbsContract
      * @throws IllegalArgumentException if db == null
      * @throws Error if was not able to remove the entry
      */
-    public static void remove(int id, SQLiteDatabase db)
+    static void remove(int id, SQLiteDatabase db)
     {
         if(db == null)
             throw new IllegalArgumentException("Incorrect parameters");
@@ -95,12 +95,12 @@ public abstract class BulbsContract
 
     /**
      * Updates a bulb in the database
-     * @param bulb lightbulb to add.
+     * @param bulb light bulb to update.
      * @param db database to modify
      * @throws IllegalArgumentException when bulb or db == null
      * @throws Error if was not able to update the entry
      */
-    public static void update(Lightbulb bulb, SQLiteDatabase db)
+    static void update(Lightbulb bulb, SQLiteDatabase db)
     {
         if(bulb == null || db == null)
             throw new IllegalArgumentException("Incorrect parameters");
@@ -142,7 +142,7 @@ public abstract class BulbsContract
 
 
     /**Inner class that defines table content*/
-    public static abstract class BulbsEntry implements BaseColumns
+    static abstract class BulbsEntry implements BaseColumns
     {
         public static final String TABLE_NAME                       = "bulbs";
         public static final String COLUMN_NAME_BULB_ID              = "_id";

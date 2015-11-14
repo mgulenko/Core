@@ -160,6 +160,8 @@ abstract class GroupsContract
                 values.clear();
             }
         }
+
+        db.close();
     }
 
     /**
@@ -175,6 +177,8 @@ abstract class GroupsContract
             throw new IllegalArgumentException("Incorrect parameters");
         if (db.delete(GroupEntry.TABLE_NAME, GroupEntry.COLUMN_NAME_GROUP_ID + "=" + id, null) != 1)
             throw new Error("Failed while removing data");
+
+        db.close();
     }
 
     /**
@@ -239,6 +243,7 @@ abstract class GroupsContract
                         SubGroupEntry.COLUMN_NAME_SUBGROUP_ID + " NOT IN " + groupIds + ")";
         db.rawQuery(query, null);
 
+        db.close();
     }
 
     /**

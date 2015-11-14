@@ -77,6 +77,8 @@ abstract class BulbsContract
         ContentValues values = initValues(bulb);
         if(db.insert(BulbsEntry.TABLE_NAME, null, values) == -1)
             throw new Error("Failed to add data into bulbs");
+
+        db.close();
     }
 
     /**
@@ -92,6 +94,8 @@ abstract class BulbsContract
             throw new IllegalArgumentException("Incorrect parameters");
         if (db.delete(BulbsEntry.TABLE_NAME, BulbsEntry.COLUMN_NAME_BULB_ID + "=" + id, null) != 1)
             throw new Error("Failed while removing data");
+
+        db.close();
     }
 
     /**
@@ -111,6 +115,8 @@ abstract class BulbsContract
         ContentValues values = initValues(bulb);
         if(db.update(BulbsEntry.TABLE_NAME, values, "_id = " + id, null) < 1)
             throw new Error("Something went wrong while updating");
+
+        db.close();
     }
 
 

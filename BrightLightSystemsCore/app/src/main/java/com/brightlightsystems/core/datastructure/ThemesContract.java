@@ -118,6 +118,7 @@ abstract class ThemesContract
             }
         }
 
+        db.close();
     }
 
     /**
@@ -134,6 +135,8 @@ abstract class ThemesContract
 
         if (db.delete(ThemeEntry.TABLE_NAME, ThemeEntry.COLUMN_NAME_THEME_ID + "=" + id, null) != 1)
             throw new Error("Failed while removing data");
+
+        db.close();
     }
 
     /**
@@ -178,9 +181,7 @@ abstract class ThemesContract
                 SubThemeEntry.COLUMN_NAME_SUBTHEME_ID + " NOT IN " + themeIds + ")";
         db.rawQuery(query, null);
 
-
-
-
+        db.close();
     }
 
     /**

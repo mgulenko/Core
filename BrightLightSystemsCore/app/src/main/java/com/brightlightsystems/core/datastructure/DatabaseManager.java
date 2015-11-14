@@ -131,6 +131,8 @@ public final class DatabaseManager extends SQLiteOpenHelper implements BulbListe
         BulbsContract.load(_database, _context);
         //loading groups data
         GroupsContract.load(_database, _context);
+        //loading themes data
+        ThemesContract.load(_database,_context);
         _database.close();
     }
 
@@ -162,19 +164,19 @@ public final class DatabaseManager extends SQLiteOpenHelper implements BulbListe
     @Override
     public void onAddBulb(BulbMessage message)
     {
-        BulbsContract.add(message._bulb,_database);
+        BulbsContract.add(message._bulb, this.getWritableDatabase());
     }
 
     @Override
     public void onRemoveBulb(BulbMessage message)
     {
-        BulbsContract.remove(message._bulb.getId(),_database);
+        BulbsContract.remove(message._bulb.getId(), this.getWritableDatabase());
     }
 
     @Override
     public void onUpdateBulb(BulbMessage message)
     {
-        BulbsContract.update(message._bulb,_database);
+        BulbsContract.update(message._bulb, this.getWritableDatabase());
     }
 
     @Override
@@ -192,19 +194,19 @@ public final class DatabaseManager extends SQLiteOpenHelper implements BulbListe
     @Override
     public void onAddGroup(GroupMessage message)
     {
-        GroupsContract.add(message._group,_database);
+        GroupsContract.add(message._group, this.getWritableDatabase());
     }
 
     @Override
     public void onRemoveGroup(GroupMessage message)
     {
-        GroupsContract.remove(message._group.getId(),_database);
+        GroupsContract.remove(message._group.getId(), this.getWritableDatabase());
     }
 
     @Override
     public void onUpdateGroup(GroupMessage message)
     {
-        GroupsContract.update(message._group,_database);
+        GroupsContract.update(message._group, this.getWritableDatabase());
     }
 
     @Override
@@ -216,13 +218,13 @@ public final class DatabaseManager extends SQLiteOpenHelper implements BulbListe
     @Override
     public void onActivatedGroup(GroupMessage message)
     {
-        GroupsContract.update(message._group,_database);
+        GroupsContract.update(message._group, this.getWritableDatabase());
     }
 
     @Override
     public void onDeactivateGroup(GroupMessage message)
     {
-        GroupsContract.update(message._group,_database);
+        GroupsContract.update(message._group, this.getWritableDatabase());
     }
 
     @Override
@@ -240,19 +242,19 @@ public final class DatabaseManager extends SQLiteOpenHelper implements BulbListe
     @Override
     public void onAddTheme(ThemeMessage message)
     {
-        ThemesContract.add(message._theme,_database);
+        ThemesContract.add(message._theme, this.getWritableDatabase());
     }
 
     @Override
     public void onRemoveTheme(ThemeMessage message)
     {
-        ThemesContract.remove(message._theme.getId(), _database);
+        ThemesContract.remove(message._theme.getId(),  this.getWritableDatabase());
     }
 
     @Override
     public void onUpdateTheme(ThemeMessage message)
     {
-        ThemesContract.update(message._theme,_database);
+        ThemesContract.update(message._theme, this.getWritableDatabase());
     }
 
     @Override
@@ -264,13 +266,13 @@ public final class DatabaseManager extends SQLiteOpenHelper implements BulbListe
     @Override
     public void onActivatedTheme(ThemeMessage message)
     {
-        ThemesContract.update(message._theme,_database);
+        ThemesContract.update(message._theme, this.getWritableDatabase());
     }
 
     @Override
     public void onDeactivateTheme(ThemeMessage message)
     {
-        ThemesContract.update(message._theme,_database);
+        ThemesContract.update(message._theme, this.getWritableDatabase());
     }
 
     @Override

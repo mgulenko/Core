@@ -1,4 +1,4 @@
-package com.brightlightsystems.core.database;
+package com.brightlightsystems.core.datastructure;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -134,10 +134,10 @@ abstract class GroupsContract
             throw new Error("Failed to add data into groups");
 
         //adding light bulbs for that group
-        if(!group.getBulbs().isEmpty())
+        if(!group.getBulbMap().isEmpty())
         {
             values = new ContentValues();
-            for(Lightbulb b : group.getBulbs())
+            for(Lightbulb b : group.getBulbCollection())
             {
                 values.put(BulbGroupEntry.COLUMN_NAME_GROUP_ID, group.getId());
                 values.put(BulbGroupEntry.COLUMN_NAME_BULB_ID, b.getId());
@@ -148,10 +148,10 @@ abstract class GroupsContract
         }
 
         //adding complex groups
-        if(!group.getGroups().isEmpty())
+        if(!group.getGroupMap().isEmpty())
         {
             values = new ContentValues();
-            for(Group g: group.getGroups())
+            for(Group g: group.getGroupCollection())
             {
                 values.put(SubGroupEntry.COLUMN_NAME_GROUP_ID, group.getId());
                 values.put(SubGroupEntry.COLUMN_NAME_SUBGROUP_ID, g.getId());
@@ -195,55 +195,50 @@ abstract class GroupsContract
         if(db.update(GroupEntry.TABLE_NAME, values, "_id = " + id, null) < 1)
             throw new Error("Something went wrong while updating");
 
-        //update bulb_group table
-        if(group.bulbCount() != 0)
-        {
-            //First create a string of of bulb ids for the remove query
-            //insert new rows if needed
-            String bulbIds = "(";
-            String insertStatement = "INSERT OR IGNORE INTO " + BulbGroupEntry.TABLE_NAME +"(" +
+        //First create a string of of bulb ids for the remove query
+        //insert new rows if needed
+        String bulbIds = "(";
+        String insertStatement = "INSERT OR IGNORE INTO " + BulbGroupEntry.TABLE_NAME +"(" +
                                      BulbGroupEntry.COLUMN_NAME_GROUP_ID + ", " +
                                      BulbGroupEntry.COLUMN_NAME_BULB_ID +") VALUES(";
-            for(Lightbulb b: group.getBulbs())
-            {
-                String query = insertStatement + group.getId() + b.getId() + ")";
-                db.rawQuery(query,null);
-                bulbIds += (b.getId() + ",");
-            }
-
-            //remove old entries
-            bulbIds = bulbIds.substring(0,bulbIds.length() - 1);
-            String query  = "DELETE FROM " + BulbGroupEntry.TABLE_NAME +
-                            " WHERE " + BulbGroupEntry.COLUMN_NAME_GROUP_ID + " = " + group.getId()+
-                            " AND " +
-                            BulbGroupEntry.COLUMN_NAME_BULB_ID + " NOT IN " + bulbIds + ")";
-            db.rawQuery(query, null);
+        for(Lightbulb b: group.getBulbCollection())
+        {
+            String query = insertStatement + group.getId() + b.getId() + ")";
+            db.rawQuery(query,null);
+            bulbIds += (b.getId() + ",");
         }
+
+        //remove old entries
+        bulbIds = bulbIds.substring(0,bulbIds.length() - 1);
+        String query  = "DELETE FROM " + BulbGroupEntry.TABLE_NAME +
+                        " WHERE " + BulbGroupEntry.COLUMN_NAME_GROUP_ID + " = " + group.getId()+
+                        " AND " +
+                        BulbGroupEntry.COLUMN_NAME_BULB_ID + " NOT IN " + bulbIds + ")";
+        db.rawQuery(query, null);
 
         //update complex group table
-        if(group.groupCount() != 0)
-        {
-            //First create a string of of group ids for the remove query
-            //insert new rows if needed
-            String groupIds = "(";
-            String insertStatement = "INSERT OR IGNORE INTO " + SubGroupEntry.TABLE_NAME +"(" +
-                    SubGroupEntry.COLUMN_NAME_GROUP_ID + ", " +
-                    SubGroupEntry.COLUMN_NAME_SUBGROUP_ID +") VALUES(";
-            for(Group g: group.getGroups())
-            {
-                String query = insertStatement + group.getId() + g.getId() + ")";
-                db.rawQuery(query,null);
-                groupIds += (g.getId() + ",");
-            }
 
-            //remove old entries
-            groupIds = groupIds.substring(0,groupIds.length() - 1);
-            String query  = "DELETE FROM " + SubGroupEntry.TABLE_NAME +
-                    " WHERE " + SubGroupEntry.COLUMN_NAME_GROUP_ID + " = " + group.getId()+
-                    " AND " +
-                    SubGroupEntry.COLUMN_NAME_SUBGROUP_ID + " NOT IN " + groupIds + ")";
-            db.rawQuery(query, null);
+        //First create a string of of group ids for the remove query
+        //insert new rows if needed
+        String groupIds = "(";
+        insertStatement = "INSERT OR IGNORE INTO " + SubGroupEntry.TABLE_NAME +"(" +
+                          SubGroupEntry.COLUMN_NAME_GROUP_ID + ", " +
+                          SubGroupEntry.COLUMN_NAME_SUBGROUP_ID +") VALUES(";
+        for(Group g: group.getGroupCollection())
+        {
+            query = insertStatement + group.getId() + g.getId() + ")";
+            db.rawQuery(query,null);
+            groupIds += (g.getId() + ",");
         }
+
+        //remove old entries
+        groupIds = groupIds.substring(0,groupIds.length() - 1);
+        query  = "DELETE FROM " + SubGroupEntry.TABLE_NAME +
+                        " WHERE " + SubGroupEntry.COLUMN_NAME_GROUP_ID + " = " + group.getId()+
+                        " AND " +
+                        SubGroupEntry.COLUMN_NAME_SUBGROUP_ID + " NOT IN " + groupIds + ")";
+        db.rawQuery(query, null);
+
     }
 
     /**

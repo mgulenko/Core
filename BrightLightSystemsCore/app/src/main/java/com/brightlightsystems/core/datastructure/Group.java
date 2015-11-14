@@ -1,22 +1,15 @@
 package com.brightlightsystems.core.datastructure;
 
-import com.brightlightsystems.core.utilities.definitions.DataStructureHelper;
-import com.brightlightsystems.core.utilities.notificationsystem.Messages;
-import com.brightlightsystems.core.utilities.notificationsystem.Subscribable;
-import com.brightlightsystems.core.utilities.notificationsystem.Subscriber;
-import com.brightlightsystems.core.utilities.notificationsystem.SystemMessage;
-
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
 
 /**
- * This class describes a group of lightbulbs.
+ * This class describes a group of light bulbs.
  * The group can contain other groups as well.
  * @author Michael Gulenko Created on 10/7/2015.
  */
-public class Group extends HueElement implements Subscribable
+public class Group extends HueElement
 {
     /**Initial indicator how much elemnts to store in the _collection*/
     private static final byte INIT_GROUP_COUNT = 16;
@@ -25,10 +18,16 @@ public class Group extends HueElement implements Subscribable
      // TODO: Add mechanism that validates synchronization
     private static int NEXT_GROUP_ID = 1;
 
-    /**Set of the light bulbs that are stored in this group.Can't be null, can't contains nulls*/
+    /**
+     * Map of the light bulbs that are stored in this group.Can't be null, can't contains nulls.
+     * Key of the map is the light bulb Integer id to the Lightbulb object
+     */
     private Map<Integer,Lightbulb> _bulbs;
 
-    /**List of groups that represent this group. Can't be null, can't contains nulls*/
+    /**
+     * List of groups that represent this group. Can't be null, can't contains nulls
+     * Key of the map is the light bulb Integer id to the Group object
+     */
     private Map<Integer,Group> _groups;
 
     /**Flag that indicates if this group is active*/
@@ -37,17 +36,17 @@ public class Group extends HueElement implements Subscribable
     /**Identifier of the bridge  that contains this group*/
     private final int _bridgeID;
 
+    /**Flag that indicates whether this group belongs to favorite category or not*/
     private boolean _favorite;
+
     /**
-     * Sets next group id.
-     * @param nextId next id
+     * Synch next bulb id with the last value in data base.
+     * @param id next id
      */
-    public static void nextGroupIdInit(int nextId)
+    public static void synchNextId(int id)
     {
-        assert (nextId > NEXT_GROUP_ID);
-        if(nextId < 1)
-            throw new IllegalArgumentException("Cant initialize next bulb id counter");
-        NEXT_GROUP_ID = nextId;
+        if(id >= NEXT_GROUP_ID)
+            NEXT_GROUP_ID = id + 1;
     }
 
     /**
@@ -66,22 +65,23 @@ public class Group extends HueElement implements Subscribable
         _activated = activated;
         assert(_bulbs  != null);
         assert(_groups != null);
+        synchNextId(id);
     }
 
     /**
      * Constructs a group with specified name and a set of light bulbs that are in that group.
      * @param id group id
      * @param name name of the group
-     * @param bulbs set of light bulbs.
+     * @param bulbs collection of light bulbs. Must be LinkedHashMap since we care about the order
      * @throws IllegalArgumentException if bulbs == null or contain nulls
      */
-    public Group(int id, String name, Set<Lightbulb> bulbs, int bridgeId, boolean favorite, boolean activated)
+    public Group(int id, String name, Map<Integer,Lightbulb> bulbs, int bridgeId, boolean favorite, boolean activated)
     {
         super(id, name);
-        if(bulbs == null || bulbs.contains(null))
+        if(bulbs == null || bulbs.containsKey(null) || bulbs.containsValue(null))
             throw new IllegalArgumentException("Can't create a group.Wrong parameter.");
 
-        _bulbs  = (Map<Integer, Lightbulb>) DataStructureHelper.hueElementsToLinkedMap(bulbs);
+        _bulbs  = new LinkedHashMap<>(bulbs);
         _groups = new LinkedHashMap<>(INIT_GROUP_COUNT);
         _activated = false;
         _bridgeID = bridgeId;
@@ -89,9 +89,8 @@ public class Group extends HueElement implements Subscribable
         _activated = activated;
         assert(_bulbs  != null);
         assert(_groups != null);
+        synchNextId(id);
     }
-
-
 
     private void repOk()
     {
@@ -132,15 +131,16 @@ public class Group extends HueElement implements Subscribable
 
     /**
      * Adds a set of the bulbs to the existing set.
-     * @param bulbs set of light bulbs that is to be added
+     * @param bulbs collection of light bulbs that is to be added. Must be LinkedHashMap,
+     *              since we care about the order.
      * @throws IllegalArgumentException if bulbs is null or contain nulls
      */
-    public void addBulbs(Set<Lightbulb> bulbs)
+    public void addBulbs(Map<Integer, Lightbulb> bulbs)
     {
-        if(bulbs == null || bulbs.contains(null))
+        if(bulbs == null || bulbs.containsKey(null) || bulbs.containsValue(null))
             throw new IllegalArgumentException("Can't add bulbs. Parameter is invalid.");
         assert(_bulbs != null);
-        _bulbs.putAll((Map<Integer, Lightbulb>) DataStructureHelper.hueElementsToLinkedMap(bulbs));
+        _bulbs.putAll(bulbs);
 
     }
 
@@ -156,42 +156,61 @@ public class Group extends HueElement implements Subscribable
             throw new IllegalArgumentException("Can't add bulb. Parameter is null.");
         assert(_groups != null);
         _groups.put(group.getId(), group);
-        subscribe();
     }
 
     /**
-     * Adds a list of groups to the existing list. If the group already exists, then its value will be
+     * Adds a collection of groups to the existing list. If the group already exists, then its value will be
      * replaced with a new one.
-     * @param groups new list of groups to be added into existing list.
+     * @param groups new collection of groups to be added into existing list. Mst be LinkedHashMap,
+     *               since we care about the order.
      * @throws IllegalArgumentException if group is null or contains null.
      */
-    public void addGroups(Set<Group> groups)
+    public void addGroups(Map<Integer,Group> groups)
     {
-        if(groups == null || groups.contains(null))
+        if(groups == null || groups.containsKey(null) ||groups.containsValue(null))
             throw new IllegalArgumentException("Can't create a group.Wrong parameter.");
         assert(_groups != null);
-        _groups.putAll((Map<Integer, Group>) DataStructureHelper.hueElementsToLinkedMap(groups));
-        subscribe();
+        _groups.putAll(groups);
     }
 
     /**
-     * Acquires a set of light bulbs in the group
-     * @return set of light bulbs
+     * Acquires a collection of light bulbs in the group
+     * @return collection of light bulbs
      */
-    public Collection<Lightbulb> getBulbs()
+    public Collection<Lightbulb> getBulbCollection()
     {
         assert (_bulbs != null);
         return _bulbs.values();
     }
 
     /**
-     * Acquires a list of groups within the group
-     * @return list of groups
+     * Acquires a collection of groups within the group
+     * @return collection of groups
      */
-    public Collection<Group> getGroups()
+    public Collection<Group> getGroupCollection()
     {
         assert(_groups != null);
         return _groups.values();
+    }
+
+    /**
+     * Acquires a map of light bulbs in the group
+     * @return map of light bulbs
+     */
+    public Map<Integer,Lightbulb> getBulbMap()
+    {
+        assert (_bulbs != null);
+        return _bulbs;
+    }
+
+    /**
+     * Acquires a map of groups within the group
+     * @return map of groups
+     */
+    public Map<Integer, Group> getGroupMap()
+    {
+        assert(_groups != null);
+        return _groups;
     }
 
     /**
@@ -202,7 +221,7 @@ public class Group extends HueElement implements Subscribable
     public void removeBulb(int bulbId)
     {
         assert(_bulbs != null);
-         ;_bulbs.remove(bulbId);
+        _bulbs.remove(bulbId);
     }
 
     /**
@@ -213,10 +232,8 @@ public class Group extends HueElement implements Subscribable
     {
         assert(_groups != null);
         _groups.remove(groupId);
-        if(_groups.size() == 0)
-            unsubscribe();
-    }
 
+    }
 
     /**
      * Removes all bulbs and groups from the group
@@ -227,41 +244,41 @@ public class Group extends HueElement implements Subscribable
         assert(_groups != null);
         _bulbs.clear();
         _groups.clear();
-        unsubscribe();
     }
 
-
     /**
-     * Updates group with specified list of  groups.
-     * Does nothing if groups == null
-     * @param groups new set opf groups
+     * Updates group with specified map of groups.
+     * Does nothing if groups == null. Values that arre not in the new map will be removed
+     * from the old map.
+     * @param groups new map of groups. Must be LinkedHashMap since we care about the order
      * @throws IllegalArgumentException if new list contains nulls
      */
-    public void updateGroup(Set<Group>groups)
+    public void updateGroup(Map<Integer,Group>groups)
     {
         if(groups == null)
             return;
-        if(groups.contains(null))
+        if(groups.containsKey(null) || groups.containsValue((null)))
             throw new IllegalArgumentException("Can't update the group. parameter contains nulls");
         assert(_groups != null);
-        _groups.putAll((Map<Integer, Group>) DataStructureHelper.hueElementsToLinkedMap(groups));
-        subscribe();
+        _groups.clear();
+        _groups.putAll(groups);
     }
 
     /**
-     * Updates group with specified set of light bulbs.
+     * Updates group with specified map of light bulbs.
      * Does nothing if bulbs == null
-     * @param bulbs new set of groups
+     * @param bulbs new map of groups. Must be LinkedHashMap since we care about the order
      * @throws IllegalArgumentException if new set contains nulls
      */
-    public void updateBulbs(Set<Lightbulb>bulbs)
+    public void updateBulbs(Map<Integer,Lightbulb>bulbs)
     {
         if(bulbs == null)
             return;
-        if(bulbs.contains(null))
+        if(bulbs.containsKey(null) || bulbs.containsValue(null))
             throw new IllegalArgumentException("Can't update bulbs. parameter contains nulls");
         assert(_bulbs != null);
-        _bulbs.putAll((Map<Integer, Lightbulb>) DataStructureHelper.hueElementsToLinkedMap(bulbs));
+        _bulbs.clear();
+        _bulbs.putAll(bulbs);
     }
 
     /**
@@ -365,30 +382,6 @@ public class Group extends HueElement implements Subscribable
      */
     public void removeFromFavorites(){_favorite = false;}
 
-
-    @Override
-    public void subscribe()
-    {
-        Subscriber.subscribe(this, Messages.MSG_REMOVE_SUBTHEMES);
-    }
-
-    @Override
-    public void unsubscribe()
-    {
-        Subscriber.unsubscribe(this, Messages.MSG_REMOVE_SUBTHEMES);
-    }
-
-    @Override
-    public <T> void onRecieve(SystemMessage<T> message)
-    {
-
-        switch (message.ID)
-        {
-            case Messages.MSG_REMOVE_SUBTHEMES:
-                _groups.remove((Integer)message.getAttachment());
-                break;
-        }
-    }
 
     /******************** end of class********************************/
 }

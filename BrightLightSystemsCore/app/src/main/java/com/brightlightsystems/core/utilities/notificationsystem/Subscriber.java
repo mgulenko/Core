@@ -1,27 +1,46 @@
 package com.brightlightsystems.core.utilities.notificationsystem;
 
 /**
- * Abstract class that describes a subscriber.
+ * Abstract class that describes a subscriber.Main responsibility of this class
+ * is to add a notification listener to a dispatcher
  * @author  Michael Gulenko. Created on 09/06/2015
  */
-public abstract class Subscriber
+public final class Subscriber
 {
     /**
-     * Subscribes to receive specified message
-     * @param messageId - message identification that is used for subscription
+     * Adds a listener to listen to bulb's notifications
+     * @param listener listener to add.
+     * @throws IllegalArgumentException if listener == null
      */
-    public static void subscribe(Subscribable subscribable, int messageId)
+    public static void addBulbListener(BulbListener listener)
     {
-        Dispatcher.getInstance().subscribe(messageId, subscribable);
+        if(listener == null)
+            throw new IllegalArgumentException("Failed to add subscriber");
+        Dispatcher.getInstance().addBulbListener(listener);
     }
 
     /**
-     * Unsubscribes from receiving specified message
-     * @param messageId - message identification that is use to unsubscribe
+     * Adds a listener to listen to group's notifications
+     * @param listener listener to add
+     * @throws IllegalArgumentException if listener == null
      */
-    public static void unsubscribe(Subscribable subscribable, int messageId)
+    public static void addGroupListener(GroupListener listener)
     {
-        Dispatcher.getInstance().unsubscribe(messageId, subscribable);
+        if(listener == null)
+            throw new IllegalArgumentException("Failed to add subscriber");
+        Dispatcher.getInstance().addGroupListener(listener);
+    }
+
+    /**
+     * Adds a listener to listen to theme's notifications
+     * @param listener listener to add
+     * @throws IllegalArgumentException if listener == null
+     */
+    public static void addThemeListener(ThemeListener listener)
+    {
+        if (listener == null)
+            throw new IllegalArgumentException("Failed to add subscriber");
+        Dispatcher.getInstance().addThemeListener(listener);
     }
 
     /******************** end of class********************************/

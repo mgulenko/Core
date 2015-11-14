@@ -1,20 +1,19 @@
 package com.brightlightsystems.core.utilities.notificationsystem;
 
-import com.brightlightsystems.core.utilities.definitions.MultiMap;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
  * Singleton class that is responsible for message delivery to all subscribers for that message.
  * @author Micahel Gulenko.Created on 09/06/2015
  */
-class Dispatcher
+final class Dispatcher
 {
-    /**
-     * Holds a list of subscribers that are subscribed to a particular message
-     * Key can't be < 1, value can't be null.
-     * Actual map can be empty.
-     */
-    private MultiMap<Integer,Subscribable> _subscribers;
+    List<BulbListener>  _bulbListeners;
+    List<GroupListener> _groupListener;
+    List<ThemeListener> _themeListener;
+
     /**
      * An instance of this class
      */
@@ -34,48 +33,143 @@ class Dispatcher
      */
     private Dispatcher()
     {
-        _subscribers = new MultiMap<>();
+        _bulbListeners = new ArrayList<>();
+        _groupListener = new ArrayList<>();
+        _themeListener = new ArrayList<>();
     }
 
     /**
-     * Method adds a subscriber and a message that it's subscribed to
-     * to a list of subscribers.
-     * @param messageId  - a legal message identifier. Can't be < 0.
-     * @param subscribable - a subscriber that needs to be add to the list.
-     * @throws {@link IllegalArgumentException} if messageId < 0 or subscriber == null
-     * @return true on success, false if the subscriber is already subscribed to the message.
+     * Adds a listener to listen to bulb's notifications
+     * @param listener listener to add.
      */
-    void subscribe(int messageId, Subscribable subscribable)
+    void addBulbListener(BulbListener listener)
     {
-        if(messageId < 0 || subscribable == null)
-            throw new IllegalArgumentException();
-      _subscribers.put(messageId,subscribable);
+        assert(listener != null);
+        _bulbListeners.add(listener);
     }
 
     /**
-     * Method removes a subscriber from a list of subscription.
-     * if there are no more subscribers to the specified message, method removes it from the list as well.
-     * @param messageId  - a legal message identifier. Can't be < 0.
-     * @param subscribable - a subscriber that needs to be add to the list.
-     * @throws {@link IllegalArgumentException} if messageId < 0 or subscriber == null
-     * @return true on success, false otherwise.
+     * Adds a listener to listen to group's notifications
+     * @param listener listener to add
      */
-    boolean unsubscribe(int messageId, Subscribable subscribable)
+    void addGroupListener(GroupListener listener)
     {
-        if(messageId < 0 || subscribable == null)
-            throw new IllegalArgumentException();
-        return _subscribers.remove(messageId,subscribable);
+        assert(listener != null);
+        _groupListener.add(listener);
     }
 
     /**
-     * Notifies all subscribers about with specified message.
-     * @param message - message that is to notify subscribers.
+     * Adds a listener to listen to theme's notifications
+     * @param listener listener to add
      */
-    void dispatch(SystemMessage message)
+    void addThemeListener(ThemeListener listener)
     {
-        for(Subscribable s:_subscribers.get(message.ID))
+        assert(listener != null);
+        _themeListener.add(listener);
+    }
+
+    /**
+     * Posts message for bulbs listener
+     * @param message message to post
+     */
+    void notifyBulbListeners(BulbMessage message)
+    {
+        assert(message != null);
+        for(BulbListener listener:_bulbListeners)
         {
-           s.onRecieve(message);
+            switch (message._id)
+            {
+                case BulbMessage.MSG_ADD_BULB:
+                    listener.onAddBulb(message);
+                    break;
+                case BulbMessage.MSG_REMOVE_BULB:
+                    listener.onRemoveBulb(message);
+                    break;
+                case BulbMessage.MSG_UPDATE_SINGLE_BULB:
+                    listener.onUpdateBulb(message);
+                    break;
+                case BulbMessage.MSG_UPDATE_MULTI_BULB:
+                    listener.onUpdateMultiBulbs(message);
+                    break;
+                case BulbMessage.MSG_SYNC_BULB_STATE:
+                    listener.onSynchBulbs(message);
+                    break;
+            }
+        }
+    }
+
+    /**
+     *Posts message for group listeners
+     * @param message message to post
+     */
+    void notifyGroupListeners(GroupMessage message)
+    {
+        for(GroupListener listener : _groupListener)
+        {
+            switch (message._id)
+            {
+                case GroupMessage.MSG_ADD_GROUP:
+                    listener.onAddGroup(message);
+                    break;
+                case GroupMessage.MSG_REMOVE_GROUP:
+                    listener.onRemoveGroup(message);
+                    break;
+                case GroupMessage.MSG_UPDATE_GROUP:
+                    listener.onUpdateGroup(message);
+                    break;
+                case GroupMessage.MSG_UPDATE_MULTI_GROUP:
+                    listener.onUpdateMultiGroups(message);
+                    break;
+                case GroupMessage.MSG_ACTIVATE_GROUP:
+                    listener.onActivatedGroup(message);
+                    break;
+                case GroupMessage.MSG_DEACTIVATE_GROUP:
+                    listener.onDeactivateGroup(message);
+                    break;
+                case GroupMessage.MSG_SYNC_GROUPS:
+                    listener.onSyncGroups(message);
+                    break;
+                case GroupMessage.MSG_REMOVE_SUBGROUPS:
+                    listener.onRemoveSubgroups(message);
+            }
+        }
+    }
+
+    /**
+     * Post message to theme listeners
+     * @param message message to post
+     */
+    void notifyThemeListeners(ThemeMessage message)
+    {
+        assert(message != null);
+        for(ThemeListener listener : _themeListener)
+        {
+            switch(message._id)
+            {
+                case ThemeMessage.MSG_ADD_THEME:
+                    listener.onAddTheme(message);
+                    break;
+                case ThemeMessage.MSG_REMOVE_THEME:
+                    listener.onRemoveTheme(message);
+                    break;
+                case ThemeMessage.MSG_REMOVE_SUBTHEMES:
+                    listener.onRemoveSubthemes(message);
+                    break;
+                case ThemeMessage.MSG_UPDATE_SINGLE_THEME:
+                    listener.onUpdateTheme(message);
+                    break;
+                case ThemeMessage.MSG_ACTIVATE_THEME:
+                    listener.onActivatedTheme(message);
+                    break;
+                case ThemeMessage.MSG_DEACTIVATE_THEME:
+                    listener.onDeactivateTheme(message);
+                    break;
+                case ThemeMessage.MSG_UPDATE_MULTI_THEME:
+                    listener.onUpdateMultiThemes(message);
+                    break;
+                case ThemeMessage.MSG_SYNC_THEMES:
+                    listener.onSyncThemes(message);
+            }
         }
     }
 

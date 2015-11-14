@@ -42,7 +42,7 @@ public class BulbColor
         repOk();
     }
 
-    public BulbColor(int color)
+    public BulbColor(int color, int transparency)
     {
         if(color < 0 )
         {
@@ -56,7 +56,7 @@ public class BulbColor
             _green = Color.green(color);
             _blue  = Color.blue(color);
         }
-        _transparency = Color.alpha(color);
+        _transparency = transparency;
     }
 
     /**

@@ -1,33 +1,25 @@
 package com.brightlightsystems.core.datastructure;
 
 
-import com.brightlightsystems.core.utilities.definitions.DataStructureHelper;
-import com.brightlightsystems.core.utilities.notificationsystem.Messages;
-import com.brightlightsystems.core.utilities.notificationsystem.Subscribable;
-import com.brightlightsystems.core.utilities.notificationsystem.Subscriber;
-import com.brightlightsystems.core.utilities.notificationsystem.SystemMessage;
-
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Class describes a single theme. A theme on its very
- * basic level is a collection of light bulbs with assigned
- * traits.A theme can also contain another themes or
- * collection of themes and light bubs.
- * Currently, if a light bulb is already present in one of other groups,
+ * basic level is a collection of traits for light bulbs.
+ * A theme can also contain another themes or collection of themes and traits.
+ * Currently, if a light bulb is already present in one of other themes,
  * we allow to have the same bulb in other themes. The conflict will be resolved by the bridge
  * the trait for that light bulb stored in the last theme will be applied to that bulb.
  * TODO: Do we need better solution for that?
  * TODO: Implement thread safe features
  * @author Micahel Gulenko
  */
-public class Theme extends HueElement implements Subscribable
+public class Theme extends HueElement
 {
     /**
-     * Initial indicator how much elemnts to store in the _collection
+     * Initial indicator how much elements to store in themes
      */
     private static final byte INIT_THEME_COUNT = 16;
 
@@ -39,59 +31,69 @@ public class Theme extends HueElement implements Subscribable
 
     /**
      * Collection of bulbs with traits.Can't be null, can't contains nulls
+     * K is  an Integer id of the Lightbulb to the trait.
      */
-    private Map<Integer,Trait> _bulbs;
+    private Map<Integer,Trait> _traits;
     /**
-     * Collection of themes.Note that this data structure allows dupe entries, thus it is
-     * essential to implement a mechanism that prevents adding dupe entries from the Front End.
-     * Can't be null, can't contains nulls.
+     * Collection of themes.Can't be null, can't contains nulls.
+     * K is an Integer id of the Theme
      */
-    private Map<Integer, Theme> _collection;
+    private Map<Integer, Theme> _themes;
     /**
      * Flag that indicates if the current theme has been selected and applied to physical bulbs.
      */
     private boolean _activated;
 
+    /**Flag that indicates whether this theme belongs to favorite category or not*/
+    private boolean _favorite;
+
     /**
-     * Sets next theme id.
-     * @param nextId next id
+     * Synch next bulb id with the last value in data base.
+     * @param id next id
      */
-    public static void nextThemeIdInit(int nextId)
+    public static void synchNextId(int id)
     {
-        assert (nextId > NEXT_THEME_ID);
-        if(nextId < 1)
-            throw new IllegalArgumentException("Cant initialize next theme id counter");
-        NEXT_THEME_ID = nextId;
+        if(id >= NEXT_THEME_ID)
+            NEXT_THEME_ID = id + 1;
     }
 
     /**
      * Constructs an empty theme.
      * @param id id of the theme
      * @param name collection of bulbs with assigned traits
+     * @param activated flag that indicates if this theme is activated or not
+     * @param favorite indicates if this theme is in favorites
      */
-    public Theme(int id, String name)
+    public Theme(int id, String name, boolean activated, boolean favorite)
     {
         super(id, name);
-        _bulbs       = new LinkedHashMap<>(Bridge.INIT_BULB_COUNT);
-        _collection  = new LinkedHashMap<>(INIT_THEME_COUNT);
+        _traits = new LinkedHashMap<>(Bridge.INIT_BULB_COUNT);
+        _themes = new LinkedHashMap<>(INIT_THEME_COUNT);
+        _activated = activated;
+        _favorite = favorite;
+        synchNextId(id);
     }
 
     /**
      * Constructs a theme from specified id, name a and a collection of bulbs with traits
      * @param id id of the theme
      * @param name name of the theme
-     * @param bulbs set of bulbs with assigned traits.
+     * @param traits collection of bulbs ids with assigned traits.
+     * @param activated flag that indicates if this theme is activated or not
+     * @param favorite indicates if this theme is in favorites
      * @throws IllegalArgumentException if bulbs == null or contains nulls
      */
-    public Theme(int id, String name, Map<Integer, Trait> bulbs)
+    public Theme(int id, String name, Map<Integer, Trait> traits, boolean activated, boolean favorite)
     {
        super(id, name);
-        if(bulbs == null || bulbs.containsKey(null) || bulbs.containsValue(null))
+        if(traits == null || traits.containsKey(null) || traits.containsValue(null))
             throw new IllegalArgumentException("Can't create theme due to incorrect argument");
 
-        _bulbs = bulbs;
-        _collection  = new LinkedHashMap<>(INIT_THEME_COUNT);
-        _activated = true;
+        _traits = new LinkedHashMap<>(traits);
+        _themes = new LinkedHashMap<>(INIT_THEME_COUNT);
+        _activated = activated;
+        _favorite = favorite;
+        synchNextId(id);
     }
 
 
@@ -122,18 +124,17 @@ public class Theme extends HueElement implements Subscribable
 
     /**
      * Adds specified theme to a collection of themes within the theme
-     * @param theme pecified theme to add.
+     * @param theme specified theme to add.
      * @return true if the theme was successfully added
      * @throws IllegalArgumentException if theme == null or contains nulls
      */
     public boolean addTheme(Theme theme)
     {
-        assert(_collection != null);
+        assert(_themes != null);
         if(!validateTheme(theme))
             throw new IllegalArgumentException("Can't create theme due to incorrect argument");
 
-        _collection.put(theme.getId(),theme);
-        subscribe();
+        _themes.put(theme.getId(), theme);
         return true;
     }
 
@@ -146,158 +147,145 @@ public class Theme extends HueElement implements Subscribable
      */
     public boolean removeTheme(int id)
     {
-        assert(_collection != null);
-        if(_collection.remove(id) != null)
-        {
-            if(_collection.size() == 0)
-                unsubscribe();
-            return true;
-        }
-        return false;
+        assert(_themes != null);
+        return _themes.remove(id) != null;
     }
 
     /**
-     * Removes theme from the list of theme by specified position
-     * @param theme specified position of the theme in the list of themes.
+     * Removes theme from the collection
+     * @param theme theme to be removed
      * @return true if successfully removed, false otherwise
      *
      */
     public boolean removeTheme(Theme theme)
     {
-        assert(_collection!=null);
-        if(_collection.remove(theme.getId())!= null)
-        {
-            if(_collection.size() == 0)
-                unsubscribe();
-            return true;
-        }
-        return false;
+        assert(_themes !=null);
+        return _themes.remove(theme.getId())!= null;
     }
 
 
     /**
-     * Removes all themes and bulbs that are in this theme.
-     * @return true on success, false otherwise.
+     * Removes all themes and traits that are in this theme.
      */
-    public void clear()
+    public void clearAll()
     {
-        assert(_bulbs      != null);
-        assert(_collection != null);
-        _bulbs.clear();
-        _collection.clear();
-        unsubscribe();
+        assert(_traits != null);
+        assert(_themes != null);
+        _traits.clear();
+        _themes.clear();
     }
 
     /**
-     * Get count of themes that are withing this theme
+     * Get count of themes that are within this theme
      * @return theme count
      */
     public int themeCount()
     {
-        assert(_collection != null);
-        return _collection.size();
+        assert(_themes != null);
+        return _themes.size();
     }
 
     /**
      * Get a collection of themes
      * @return collection of themes that represent this theme
      */
-    public Collection<Theme> getThemes()
+    public Collection<Theme> getThemeCollection()
     {
-        return _collection.values();
+        return _themes.values();
     }
 
+    public Map<Integer,Theme> getThemeMap(){return _themes;}
+
     /**
-     * Stores specified bulb with trait for this bulb into theme. If the bulb is already exists
+     * Stores specified trait with into this theme. If the bulb is already exists
      * then trait value will be updated for that bulb.
-     * @param bulb specified bulb to store
+     * @param bulbId specified bulb id to store
      * @param trait characteristics that are assigned to the bulb
      * @return true on success, false otherwise
      * @throws IllegalArgumentException if parameters are nulls
      */
-    public Trait addBulb(Lightbulb bulb, Trait trait)
+    public Trait addTrait(int bulbId, Trait trait)
     {
-        assert(_bulbs != null);
-        if(bulb == null || trait == null)
-            throw new IllegalArgumentException("Can't add bulb. One or more parameters is null");
+        assert(_traits != null);
+        if(trait == null)
+            throw new IllegalArgumentException("Can't add trait. One or more parameters is null");
 
-        return _bulbs.put(bulb.getId(), trait);
+        return _traits.put(bulbId, trait);
     }
 
     /**
-     * Add collection of bulbs and traits to the theme.
-     * @param bulbs collection of bulbs ids and traits that needs to be added.
+     * Add collection of bulbs ids and traits to the theme.
+     * @param traits collection of bulbs ids and traits that needs to be added. Must be LinkedHashMap
      * @throws IllegalArgumentException if the parameter is null or contains nulls
      */
-    public void addBulbs(Map<Integer,Trait> bulbs)
+    public void addTraits(Map<Integer,Trait> traits)
     {
-        assert(_bulbs != null);
-        if(bulbs == null || bulbs.containsKey(null) || _bulbs.containsValue(null))
-            throw new IllegalArgumentException("Can't add bulbs. Parameter is null or contains nulls");
-        _bulbs.putAll(bulbs);
+        assert(_traits != null);
+        if(traits == null || traits.containsKey(null) || traits.containsValue(null))
+            throw new IllegalArgumentException("Can't add trait. Parameter is null or contains nulls");
+        _traits.putAll(traits);
     }
 
     /**
-     * Get a collection of bulbs and traits
-     * @return collection of bulbs and traits.
+     * Get a map of traits
+     * @return collection traits.
      */
-    public Map<Integer,Trait> getBulbs()
+    public Map<Integer,Trait> getTraitMap()
     {
-        return _bulbs;
+        return _traits;
     }
 
     /**
      * Get count of bulbs in the theme
      * @return amount of bulbs contained in the collection of bulbs.
      */
-    public int bulbCount()
+    public int traitCount()
     {
-        assert(_bulbs != null);
-        return _bulbs.size();
+        assert(_traits != null);
+        return _traits.size();
     }
 
     /**
-     * Counts all bulbs including bulbs in sub themes.
-     * @return total count of all bulbs affected by this theme.
+     * Counts all traits including traits in sub themes.
+     * @return total count of all traits affected by this theme.
      */
-    public int countAllBulbs()
+    public int countAllTraits()
     {
-        assert(_collection != null);
-        int total = bulbCount();
-        for(Map.Entry<Integer,Theme> t:_collection.entrySet())
-            total += t.getValue().bulbCount();
+        assert(_themes != null);
+        int total = traitCount();
+        for(Map.Entry<Integer,Theme> t: _themes.entrySet())
+            total += t.getValue().traitCount();
         return total;
     }
 
 
     /**
-     * Updates collection of bulbs and traits in the theme.
-     * @param bulbs collection of bulbs and traits that needs to be added.
+     * Updates collection of traits in the theme.
+     * @param traits collection of traits that is used for update. Must be LinkedHashMap
      * @throws IllegalArgumentException if the parameter is null or contains nulls
      */
-    public void updateBulbs(Map<Integer,Trait> bulbs)
+    public void updateTraits(Map<Integer,Trait> traits)
     {
-        if(bulbs == null)
+        if(traits == null)
             return;
-       addBulbs(bulbs);
+        _traits.clear();
+        addTraits(traits);
     }
 
     /**
-     * Updates the theme collection. If vaue dos not exist, then it will be added into  the map
-     * @param themes
+     * Updates the theme collection. If value does not exist, then it will be added into the map
+     * @param themes collection of theme that is used for update. Must be LinkedHashMap
+     * @throws IllegalArgumentException if the parameter is null or contains nulls
      */
-    public void updateThemes(Set<Theme> themes)
+    public void updateThemes(Map<Integer, Theme> themes)
     {
         if(themes == null)
             return;
-
-        assert(_collection != null);
-        for(Theme t:themes)
-        {
-            if(!validateTheme(t))
-                throw new IllegalArgumentException("Can't update theme due to incorrect argument");
-        }
-        _collection.putAll((Map<Integer, Theme>) DataStructureHelper.hueElementsToLinkedMap(themes));
+        if(themes.containsKey(null)||themes.containsKey(null))
+            throw new IllegalArgumentException("Error while updating themes");
+        assert(_themes != null);
+        _themes.clear();
+        _themes.putAll(themes);
     }
 
 
@@ -310,34 +298,33 @@ public class Theme extends HueElement implements Subscribable
     {
         if(theme == null)
             return false;
-        Map<Integer, Trait> bulbs = theme._bulbs;
+        Map<Integer, Trait> bulbs = theme._traits;
         if(bulbs == null || bulbs.containsKey(null) || bulbs.containsValue(null))
             return false;
         return true;
     }
 
-    @Override
-    public void subscribe()
+    /**
+     * Asks the theme if its belong to favorite category
+     * @return true if was added to favorites, false otherwise
+     */
+    public boolean isFavorite()
     {
-        Subscriber.subscribe(this, Messages.MSG_REMOVE_SUBTHEMES);
+        return _favorite;
     }
 
-    @Override
-    public void unsubscribe()
+    /**
+     * Adds theme to favorite
+     */
+    public void addToFavorites()
     {
-        Subscriber.subscribe(this, Messages.MSG_REMOVE_SUBTHEMES);
+        _favorite = true;
     }
 
-    @Override
-    public <T> void onRecieve(SystemMessage<T> message)
-    {
-        switch (message.ID)
-        {
-            case Messages.MSG_REMOVE_SUBTHEMES:
-                _collection.remove((Integer)message.getAttachment());
-                break;
-        }
-    }
+    /**
+     * Removes from favorite category.
+     */
+    public void removeFromFavorites(){_favorite = false;}
 
 
     /******************** end of class********************************/

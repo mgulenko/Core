@@ -1,22 +1,23 @@
 package com.brightlightsystems.core.datastructure;
 
-import com.brightlightsystems.core.utilities.definitions.DataStructureHelper;
-import com.brightlightsystems.core.utilities.notificationsystem.Publisher;
-import com.brightlightsystems.core.utilities.notificationsystem.Subscribable;
+import com.brightlightsystems.core.utilities.notificationsystem.BulbListener;
+import com.brightlightsystems.core.utilities.notificationsystem.BulbMessage;
+import com.brightlightsystems.core.utilities.notificationsystem.GroupListener;
+import com.brightlightsystems.core.utilities.notificationsystem.GroupMessage;
 import com.brightlightsystems.core.utilities.notificationsystem.Subscriber;
-import com.brightlightsystems.core.utilities.notificationsystem.SystemMessage;
-import com.brightlightsystems.core.utilities.notificationsystem.Messages;
+import com.brightlightsystems.core.utilities.notificationsystem.ThemeListener;
+import com.brightlightsystems.core.utilities.notificationsystem.ThemeMessage;
 
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Singleton class that holds all structural key components
- * and responicble for managing data flow within it
+ * and responsible for managing data flow within it
  * @author Michael Gulenko. Created on 10/30/2015.
  */
-public class DataManager implements Subscribable
+public final class DataManager implements BulbListener,GroupListener,ThemeListener
 {
     /**
      * Instance of this class
@@ -28,7 +29,7 @@ public class DataManager implements Subscribable
     /**Map of groups, where K is a bridge id and V is another map of group id's to the V of the actual group*/
     private static Map<Integer, Map<Integer,Group>>      _groupCollection;
     /**Map of bridges, where K is a bridge's id and V is the actual bridge*/
-    private static Map<Integer,Bridge>                     _bridgeCollection;
+    private static Map<Integer,Bridge>                    _bridgeCollection;
 
 
 
@@ -72,7 +73,7 @@ public class DataManager implements Subscribable
      * @param activeBridgeId
      * @throws IllegalArgumentException if < 1
      */
-    public static void setActiveBridgeId(int activeBridgeId)
+    static void setActiveBridgeId(int activeBridgeId)
     {
         if(activeBridgeId < 1)
             throw new IllegalArgumentException("Illegal argument for the bridge id");
@@ -80,11 +81,19 @@ public class DataManager implements Subscribable
     }
 
     /**
-     * Get a collection of theme
-     * @return - collection of themes
+     * Get a map representation of theme collection
+     * @return map of themes
      */
-    public Map<Integer, Theme> getThemeCollection() {
+    public Map<Integer, Theme> getThemeMap() {
         return _themeCollection;
+    }
+
+    /**
+     * Get a collection representation of themes
+     * @return map of themes
+     */
+    public Collection<Theme> getThemeCollection() {
+        return _themeCollection.values();
     }
 
     /**
@@ -92,11 +101,11 @@ public class DataManager implements Subscribable
      * @param themeCollection - specified collection themes.
      * @throws IllegalArgumentException if null or contains nulls
      */
-    public void setThemeCollection(Set<Theme> themeCollection)
+    void setThemeCollection(Map<Integer, Theme> themeCollection)
     {
-        if(themeCollection == null ||themeCollection.contains(null))
+        if(themeCollection == null || themeCollection.containsKey(null) || themeCollection.containsValue(null))
             throw new IllegalArgumentException("Failed to create collection of themes.");
-        _themeCollection = (Map<Integer, Theme>) DataStructureHelper.hueElementsToLinkedMap(themeCollection);
+        _themeCollection = new LinkedHashMap<>(themeCollection);
         assert(_themeCollection != null);
     }
 
@@ -109,18 +118,17 @@ public class DataManager implements Subscribable
     }
 
     /**
-     * Sets a collection of themes
+     * Adds a collection of group
      * @param groupCollection - a specified collection of groups
      * @param bridgeId Id of the bridge owner of this group
      * @throws IllegalArgumentException if null or contains nulls
      */
-    public void setGroupCollection(Set<Group> groupCollection, int bridgeId)
+    void addGroupCollection(Map<Integer, Group> groupCollection, int bridgeId)
     {
-        if(groupCollection == null ||groupCollection.contains(null))
+        if(groupCollection == null ||groupCollection.containsKey(null) ||groupCollection.containsValue(null))
             throw new IllegalArgumentException("Failed to create collection of groups.");
 
-        Map<Integer,Group> groups = (Map<Integer, Group>) DataStructureHelper.hueElementsToLinkedMap(groupCollection);
-        _groupCollection.put(bridgeId,groups);
+        _groupCollection.put(bridgeId,groupCollection);
         assert(_groupCollection != null);
     }
 
@@ -137,11 +145,11 @@ public class DataManager implements Subscribable
      * @param bridgeCollection - a specified collection of bridges
      * @throws IllegalArgumentException if null or contains nulls
      */
-    public void setBridgeCollection(Set<Bridge> bridgeCollection)
+    public void setBridgeCollection(Map<Integer, Bridge> bridgeCollection)
     {
-        if(bridgeCollection == null ||bridgeCollection.contains(null))
+        if(bridgeCollection == null ||bridgeCollection.containsKey(null) || bridgeCollection.containsValue(null))
             throw new IllegalArgumentException("Failed to create collection of groups.");
-        _bridgeCollection = (Map<Integer, Bridge>) DataStructureHelper.hueElementsToLinkedMap(bridgeCollection);
+        _bridgeCollection = new LinkedHashMap<>(bridgeCollection);
         assert (_bridgeCollection != null);
     }
 
@@ -161,10 +169,10 @@ public class DataManager implements Subscribable
      * Removes theme by specified id.
      * @param id theme id
      */
-    public void removeTheme(int id)
+    void removeTheme(int id)
     {
         _themeCollection.remove(id);
-        Publisher.publish(new SystemMessage<Integer>(Messages.MSG_REMOVE_SUBTHEMES, id));
+        //TODO: add remove subthemes message
     }
 
     /**
@@ -172,7 +180,7 @@ public class DataManager implements Subscribable
      * @param group new group to add.
      * @throws IllegalArgumentException if null.
      */
-    public void addGroup(Group group)
+    void addGroup(Group group)
     {
         if(group == null)
             throw new IllegalArgumentException("Failed to add group.");
@@ -192,7 +200,7 @@ public class DataManager implements Subscribable
      * @param group group to be removed
      * @throws IllegalArgumentException if null
      */
-    public void removeGroup(Group group)
+    void removeGroup(Group group)
     {
         if (group == null)
             throw new IllegalArgumentException("Error removing the group");
@@ -201,7 +209,7 @@ public class DataManager implements Subscribable
         _groupCollection.get(bridgeId).remove(group.getId());
         if(_groupCollection.get(bridgeId).isEmpty())
             _bridgeCollection.remove(bridgeId);
-        Publisher.publish(new SystemMessage<>(Messages.MSG_REMOVE_SUBGROUPS, group.getId()));
+        //TODO: add remove subgroups message
     }
 
     /**
@@ -209,7 +217,7 @@ public class DataManager implements Subscribable
      * @param bridge new group to add.
      * @throws IllegalArgumentException if null.
      */
-    public void addBridge(Bridge bridge)
+    void addBridge(Bridge bridge)
     {
         if(bridge == null)
             throw new IllegalArgumentException("Failed to add bridge.");
@@ -219,7 +227,7 @@ public class DataManager implements Subscribable
     /**
      * Clears entire data structure.
      */
-    public void removeAll()
+    void removeAll()
     {
         _bridgeCollection.clear();;
         _groupCollection.clear();
@@ -231,7 +239,7 @@ public class DataManager implements Subscribable
      * Removes bridge by specified id.
      * @param id bridge id
      */
-    public void removeBridge(int id)
+    void removeBridge(int id)
     {
         _bridgeCollection.remove(id);
     }
@@ -247,147 +255,151 @@ public class DataManager implements Subscribable
         return _bridgeCollection.get(_activeBridgeId).getBulb(id);
     }
 
-    @Override
-    public void subscribe()
+    private void subscribe()
     {
-        Subscriber.subscribe(this, Messages.MSG_ADD_BULB);
-        Subscriber.subscribe(this, Messages.MSG_REMOVE_BULB);
-        Subscriber.subscribe(this, Messages.MSG_UPDATE_SINGLE_BULB);
-        Subscriber.subscribe(this, Messages.MSG_UPDATE_MULTI_BULB);
-        Subscriber.subscribe(this, Messages.MSG_SYNC_BULB_STATE);
-
-        Subscriber.subscribe(this, Messages.MSG_ADD_THEME);
-        Subscriber.subscribe(this, Messages.MSG_REMOVE_THEME);
-        Subscriber.subscribe(this, Messages.MSG_UPDATE_SINGLE_THEME);
-        Subscriber.subscribe(this, Messages.MSG_UPDATE_COMPLEX_THEME);
-        Subscriber.subscribe(this, Messages.MSG_ACTIVATE_THEME);
-        Subscriber.subscribe(this, Messages.MSG_DEACTIVATE_THEME);
-        Subscriber.subscribe(this, Messages.MSG_SYNC_THEMES);
-
-        Subscriber.subscribe(this, Messages.MSG_ADD_GROUP);
-        Subscriber.subscribe(this, Messages.MSG_REMOVE_GROUP);
-        Subscriber.subscribe(this, Messages.MSG_UPDATE_GROUP);
-        Subscriber.subscribe(this, Messages.MSG_UPDATE_MULTI_GROUP);
-        Subscriber.subscribe(this, Messages.MSG_ACTIVATE_GROUP);
-        Subscriber.subscribe(this, Messages.MSG_DEACTIVATE_GROUP);
-        Subscriber.subscribe(this, Messages.MSG_SYNC_GROUPS);
+        Subscriber.addBulbListener(this);
+        Subscriber.addGroupListener(this);
+        Subscriber.addThemeListener(this);
     }
 
     @Override
-    public void unsubscribe()
+    public void onAddBulb(BulbMessage message)
     {
-        Subscriber.unsubscribe(this, Messages.MSG_ADD_BULB);
-        Subscriber.unsubscribe(this, Messages.MSG_REMOVE_BULB);
-        Subscriber.unsubscribe(this, Messages.MSG_UPDATE_SINGLE_BULB);
-        Subscriber.unsubscribe(this, Messages.MSG_UPDATE_MULTI_BULB);
-        Subscriber.unsubscribe(this, Messages.MSG_SYNC_BULB_STATE);
-
-        Subscriber.unsubscribe(this, Messages.MSG_ADD_THEME);
-        Subscriber.unsubscribe(this, Messages.MSG_REMOVE_THEME);
-        Subscriber.unsubscribe(this, Messages.MSG_UPDATE_SINGLE_THEME);
-        Subscriber.unsubscribe(this, Messages.MSG_UPDATE_COMPLEX_THEME);
-        Subscriber.unsubscribe(this, Messages.MSG_ACTIVATE_THEME);
-        Subscriber.unsubscribe(this, Messages.MSG_DEACTIVATE_THEME);
-        Subscriber.unsubscribe(this, Messages.MSG_SYNC_THEMES);
-
-        Subscriber.unsubscribe(this, Messages.MSG_ADD_GROUP);
-        Subscriber.unsubscribe(this, Messages.MSG_REMOVE_GROUP);
-        Subscriber.unsubscribe(this, Messages.MSG_UPDATE_GROUP);
-        Subscriber.unsubscribe(this, Messages.MSG_UPDATE_MULTI_GROUP);
-        Subscriber.unsubscribe(this, Messages.MSG_ACTIVATE_GROUP);
-        Subscriber.unsubscribe(this, Messages.MSG_DEACTIVATE_GROUP);
-        Subscriber.unsubscribe(this, Messages.MSG_SYNC_GROUPS);
+        _bridgeCollection.get(_activeBridgeId)
+                         .addBulb(message._bulb);
     }
 
     @Override
-    public <T> void onRecieve(SystemMessage<T> message)
+    public void onRemoveBulb(BulbMessage message)
     {
+        _bridgeCollection.get(_activeBridgeId)
+                         .removeBulb(message._bulb.getId());
+    }
 
-        switch(message.ID)
-        {
-            case Messages.MSG_ADD_BULB:
-                _bridgeCollection.get(_activeBridgeId).addBulb((Lightbulb)message.getAttachment());
-                break;
-            case Messages.MSG_REMOVE_BULB:
-                _bridgeCollection.get(_activeBridgeId).removeBulb((Integer)message.getAttachment());
-                break;
-            case Messages.MSG_UPDATE_SINGLE_BULB:
-                _bridgeCollection.get(_activeBridgeId).update((Lightbulb) message.getAttachment());
-                break;
-            case Messages.MSG_UPDATE_MULTI_BULB:
-            {
-                Set<Lightbulb> bs = (Set<Lightbulb>) message.getAttachment();
-                _bridgeCollection.get(_activeBridgeId).updateAll(bs);
-            }
-                break;
-            case Messages.MSG_SYNC_BULB_STATE:
-                //TODO: implement this message handler
-                break;
-            case Messages.MSG_ADD_GROUP:
-                addGroup((Group)message.getAttachment());
-                break;
-            case Messages.MSG_REMOVE_GROUP:
-                removeGroup(((Group)message.getAttachment()));
-                break;
-            case Messages.MSG_UPDATE_GROUP:
-            {
-                Group g = (Group)message.getAttachment();
-                _groupCollection.get(g.getBridgeId()).get(g.getId()).updateBulbs((Set)g.getBulbs());
-            }
-                break;
-            case Messages.MSG_UPDATE_MULTI_GROUP:
-            //TODO: implement message handler
-                break;
-            case Messages.MSG_ACTIVATE_GROUP:
-            {
-                Group g = (Group) message.getAttachment();
-                _groupCollection.get(g.getBridgeId()).get(g.getId()).activate();
-            }
-                break;
-            case Messages.MSG_DEACTIVATE_GROUP:
-            {
-                Group g = (Group) message.getAttachment();
-                _groupCollection.get(g.getBridgeId()).get(g.getId()).deactivate();
-            }
-                break;
-            case Messages.MSG_SYNC_GROUPS:
-                //TODO: implement message handler
-                break;
-            case Messages.MSG_ADD_THEME:
-            {
-                Theme t = (Theme) message.getAttachment();
-                _themeCollection.put(t.getId(),t);
-            }
-                break;
-            case Messages.MSG_REMOVE_THEME:
-                removeTheme((Integer) message.getAttachment());
-                break;
-            case Messages.MSG_UPDATE_SINGLE_THEME:
-            {
-                Theme t = (Theme)message.getAttachment();
-                _themeCollection.get(t.getId()).updateBulbs(t.getBulbs());
-            }
-                break;
-            case Messages.MSG_UPDATE_COMPLEX_THEME:
-            {
-                Theme t = (Theme)message.getAttachment();
-                _themeCollection.get(t.getId()).updateBulbs(t.getBulbs());
-                _themeCollection.get(t.getId()).updateThemes((Set)t.getThemes());
-            }
-                break;
-            case Messages.MSG_ACTIVATE_THEME:
-            {
-                Theme t = (Theme) message.getAttachment();
-                _themeCollection.get(t.getId()).activate();
-            }
-                break;
-            case Messages.MSG_DEACTIVATE_THEME:
-                Theme t = (Theme) message.getAttachment();
-                _themeCollection.get(t.getId()).deactivate();
-                break;
-            case Messages.MSG_SYNC_THEMES:
-                //TODO: Implement message handler
-                break;
-        }
+    @Override
+    public void onUpdateBulb(BulbMessage message)
+    {
+        _bridgeCollection.get(_activeBridgeId)
+                         .update( message._bulb);
+    }
+
+    @Override
+    public void onUpdateMultiBulbs(BulbMessage message)
+    {
+        //TODO: implement this message handler
+    }
+
+    @Override
+    public void onSynchBulbs(BulbMessage message)
+    {
+        //TODO:Update this message handler
+    }
+
+    @Override
+    public void onAddGroup(GroupMessage message)
+    {
+        addGroup(message._group);
+    }
+
+    @Override
+    public void onRemoveGroup(GroupMessage message)
+    {
+        removeGroup(message._group);
+    }
+
+    @Override
+    public void onUpdateGroup(GroupMessage message)
+    {
+        Group g = message._group;
+        _groupCollection.get(g.getBridgeId())
+                        .get(g.getId())
+                        .updateBulbs(g.getBulbMap());
+
+        _groupCollection.get(g.getBridgeId())
+                        .get(g.getId())
+                        .updateGroup(g.getGroupMap());
+    }
+
+    @Override
+    public void onUpdateMultiGroups(GroupMessage message)
+    {
+        //TODO: implement message handlers
+    }
+
+    @Override
+    public void onActivatedGroup(GroupMessage message)
+    {
+        Group g = message._group;
+        _groupCollection.get(g.getBridgeId()).get(g.getId()).activate();
+    }
+
+    @Override
+    public void onDeactivateGroup(GroupMessage message)
+    {
+        Group g = message._group;
+        _groupCollection.get(g.getBridgeId()).get(g.getId()).deactivate();
+    }
+
+    @Override
+    public void onSyncGroups(GroupMessage message)
+    {
+        //TODO: implement message handlers
+    }
+
+    @Override
+    public void onRemoveSubgroups(GroupMessage message)
+    {
+        //TODO: implement message handler
+    }
+
+    @Override
+    public void onAddTheme(ThemeMessage message)
+    {
+        _themeCollection.put(message._theme.getId(),message._theme);
+    }
+
+    @Override
+    public void onRemoveTheme(ThemeMessage message)
+    {
+        removeTheme(message._theme.getId());
+    }
+
+    @Override
+    public void onUpdateTheme(ThemeMessage message)
+    {
+        Theme t = message._theme;
+        _themeCollection.get(t.getId()).updateTraits(t.getTraitMap());
+        _themeCollection.get(t.getId()).updateThemes(t.getThemeMap());
+
+    }
+
+    @Override
+    public void onUpdateMultiThemes(ThemeMessage message)
+    {
+        //TODO: implement message handler
+    }
+
+    @Override
+    public void onActivatedTheme(ThemeMessage message)
+    {
+        _themeCollection.get(message._theme.getId()).activate();
+    }
+
+    @Override
+    public void onDeactivateTheme(ThemeMessage message)
+    {
+        _themeCollection.get(message._theme.getId()).deactivate();
+    }
+
+    @Override
+    public void onRemoveSubthemes(ThemeMessage message)
+    {
+        //TODO: implement message handler
+    }
+
+    @Override
+    public void onSyncThemes(ThemeMessage message)
+    {
+        //TODO: implement message handler
     }
 }

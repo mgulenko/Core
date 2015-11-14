@@ -1,4 +1,4 @@
-package com.brightlightsystems.core.database;
+package com.brightlightsystems.core.datastructure;
 
 import android.content.Context;
 import android.database.Cursor;

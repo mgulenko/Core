@@ -1,7 +1,5 @@
 package com.brightlightsystems.core.datastructure;
 
-import com.brightlightsystems.core.utilities.notificationsystem.SystemMessage;
-
 /**
  * This class describes a single Phillips Hue light bulb.
  * @author Michael Gulenko Created on 10/7/2015.

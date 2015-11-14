@@ -1,25 +1,14 @@
 package com.brightlightsystems.core;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.brightlightsystems.core.database.DatabaseManager;
-import com.brightlightsystems.core.datastructure.Bridge;
-import com.brightlightsystems.core.datastructure.BulbColor;
-import com.brightlightsystems.core.datastructure.DataManager;
-import com.brightlightsystems.core.datastructure.Group;
-import com.brightlightsystems.core.datastructure.Lightbulb;
-import com.brightlightsystems.core.datastructure.Trait;
-import com.brightlightsystems.core.utilities.annotations.Gulenko;
-import com.brightlightsystems.core.utilities.notificationsystem.Messages;
-import com.brightlightsystems.core.utilities.notificationsystem.Publisher;
-import com.brightlightsystems.core.utilities.notificationsystem.SystemMessage;
+import com.brightlightsystems.core.datastructure.DatabaseManager;
+import com.brightlightsystems.core.utilities.definitions.DataStructureHelper;
 
 import java.io.IOException;
-import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -78,23 +67,11 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-     //   Trait trait = new Trait(new BulbColor(234,222,245,100));
-      //  Lightbulb bulb = new Lightbulb(Lightbulb.getNextBulbId(),"NEEEEEWWWWWW","MABLAWAWAWA", trait, Lightbulb.States.ON);
-
-
-        Publisher.publish(new SystemMessage<Integer>(Messages.MSG_REMOVE_BULB, 1));
-      //  Publisher.publish(new SystemMessage<Lightbulb>(Messages.MSG_ADD_BULB, bulb));
-       // DataManager.getInstance().removeAll();
-
-        dm.loadData();
-
-
-        for(Map.Entry<Integer,Group> v:  DataManager.getInstance().getGroupCollection().get(DataManager.getActiveBridgeId()).entrySet())
-        {
-            Log.d("ToString", v.getValue().toString());
-        }
-
+        DataStructureHelper.BulbTest(dm);
     }
+
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

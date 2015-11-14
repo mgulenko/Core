@@ -1,25 +1,53 @@
 package com.brightlightsystems.core.utilities.notificationsystem;
 
 /**
- * Class that responsible for publishing messages.
+ * Class that responsible for publishing notifications.
  * It uses {@link Dispatcher} class to notify all subscribed
- * to a particular message classes.
+ * to a particular types of notification classes.
  * @author  Michael Gulenko. Created on 09/06/2015
  */
-public abstract class Publisher
+public final class Publisher
 {
 
+    /**prevents from instantiation*/
+    private Publisher(){}
+
     /**
-     * Method publishes specified message.
-     * @param message - message that needs to be published. Not null.
-     * @throws - {@link IllegalArgumentException} if message is null.
+     * Posts notification for bulb notification listeners
+     * @param message message to post
+     * @throws IllegalArgumentException if message == null
      */
-    public static void publish(SystemMessage message)
+    public static void postBulbNotification(BulbMessage message)
     {
         if(message == null)
             throw new IllegalArgumentException();
-        Dispatcher.getInstance().dispatch(message);
+        Dispatcher.getInstance().notifyBulbListeners(message);
     }
+
+    /**
+     * Posts notification for group notification listeners
+     * @param message message to post
+     * @throws IllegalArgumentException if message == null
+     */
+    public static void postGroupNotification(GroupMessage message)
+    {
+        if(message == null)
+            throw new IllegalArgumentException();
+        Dispatcher.getInstance().notifyGroupListeners(message);
+    }
+
+    /**
+     * Posts notification for theme notification listeners
+     * @param message message to post
+     * @throws IllegalArgumentException if message == null
+     */
+    public static void postThemeNotification(ThemeMessage message)
+    {
+        if(message == null)
+            throw new IllegalArgumentException();
+        Dispatcher.getInstance().notifyThemeListeners(message);
+    }
+
 
     /******************** end of class********************************/
 }

@@ -1,4 +1,4 @@
-package com.brightlightsystems.core.database;
+package com.brightlightsystems.core.datastructure;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -46,12 +46,13 @@ abstract class BulbsContract
                 int bridgeId = cursor.getInt(cursor.getColumnIndex(BulbsEntry.COLUMN_NAME_BRIDGE_ID));
                 int color = cursor.getInt(cursor.getColumnIndex(BulbsEntry.COLUMN_NAME_BULB_COLOR));
                 int brightness = cursor.getInt(cursor.getColumnIndex(BulbsEntry.COLUMN_NAME_BULB_BRIGHTNESS));
+                int transparency = cursor.getInt(cursor.getColumnIndex(BulbsEntry.COLUMN_NAME_TRANSPARENCY));
 
                 if(userDefName == null)
                   userDefName = context.getResources().getString(R.string.default_lightbulb);
 
                 Lightbulb.synchNextId(id);
-                Trait trait = new Trait(new BulbColor(color),brightness);
+                Trait trait = new Trait(new BulbColor(color,transparency),brightness);
                 bulb = new Lightbulb(id, factoryName, userDefName, trait, Lightbulb.intToState(stateId));
 
                 DataManager.getInstance().getBridgeCollection().get(bridgeId).addBulb(bulb);
@@ -129,6 +130,7 @@ abstract class BulbsContract
         int bridgeId = DataManager.getActiveBridgeId();
         int color = bulb.getTrait().getColor().getColor();
         int brightness = bulb.getTrait().getBrightness();
+        int transparency = bulb.getTrait().getColor().getTransparency();
 
         ContentValues values = new ContentValues();
         values.put(BulbsEntry.COLUMN_NAME_FACTORY_NAME, factoryName);
@@ -137,6 +139,7 @@ abstract class BulbsContract
         values.put(BulbsEntry.COLUMN_NAME_BRIDGE_ID, bridgeId);
         values.put(BulbsEntry.COLUMN_NAME_BULB_COLOR, color);
         values.put(BulbsEntry.COLUMN_NAME_BULB_BRIGHTNESS, brightness);
+        values.put(BulbsEntry.COLUMN_NAME_TRANSPARENCY, transparency);
         return values;
     }
 
@@ -152,5 +155,6 @@ abstract class BulbsContract
         public static final String COLUMN_NAME_BRIDGE_ID            = "bridge_id";
         public static final String COLUMN_NAME_BULB_COLOR           = "bulb_color";
         public static final String COLUMN_NAME_BULB_BRIGHTNESS      = "bulb_brightness";
+        public static final String COLUMN_NAME_TRANSPARENCY         = "color_transparency";
     }
 }

@@ -28,7 +28,7 @@ public class Lightbulb extends HueElement
      * Synch next bulb id with the last value in data base.
      * @param id next id
      */
-    public static void synchNextId(int id)
+    private void synchNextId(int id)
     {
         if(id >= NEXT_BULB_ID)
             NEXT_BULB_ID = id + 1;

@@ -43,13 +43,11 @@ public class Group extends HueElement
      * Synch next bulb id with the last value in data base.
      * @param id next id
      */
-    private void synchNextId(int id)
+    public static void synchNextId(int id)
     {
         if(id >= NEXT_GROUP_ID)
             NEXT_GROUP_ID = id + 1;
     }
-
-    public static int getNextGroupId(){return NEXT_GROUP_ID;}
 
     /**
      * Constructs an empty group with the specified name.

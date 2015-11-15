@@ -207,7 +207,7 @@ abstract class GroupsContract
                                      BulbGroupEntry.COLUMN_NAME_BULB_ID +") VALUES(";
         for(Lightbulb b: group.getBulbCollection())
         {
-            String query = insertStatement + group.getId() + b.getId() + ")";
+            String query = insertStatement + group.getId() +", " + b.getId() + ")";
             db.rawQuery(query,null);
             bulbIds += (b.getId() + ",");
         }
@@ -230,13 +230,22 @@ abstract class GroupsContract
                           SubGroupEntry.COLUMN_NAME_SUBGROUP_ID +") VALUES(";
         for(Group g: group.getGroupCollection())
         {
-            query = insertStatement + group.getId() + g.getId() + ")";
+            query = insertStatement + group.getId()+", " + g.getId() + ")";
             db.rawQuery(query,null);
             groupIds += (g.getId() + ",");
         }
 
         //remove old entries
         groupIds = groupIds.substring(0,groupIds.length() - 1);
+        if(groupIds.isEmpty())
+        {
+            query  = "DELETE FROM " + SubGroupEntry.TABLE_NAME +
+                    " WHERE " + SubGroupEntry.COLUMN_NAME_GROUP_ID + " = " + group.getId();
+            db.rawQuery(query, null);
+            db.close();
+            return;
+        }
+
         query  = "DELETE FROM " + SubGroupEntry.TABLE_NAME +
                         " WHERE " + SubGroupEntry.COLUMN_NAME_GROUP_ID + " = " + group.getId()+
                         " AND " +

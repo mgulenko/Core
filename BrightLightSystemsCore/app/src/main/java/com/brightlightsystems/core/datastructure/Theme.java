@@ -51,11 +51,13 @@ public class Theme extends HueElement
      * Synch next bulb id with the last value in data base.
      * @param id next id
      */
-    public static void synchNextId(int id)
+    private static void synchNextId(int id)
     {
         if(id >= NEXT_THEME_ID)
             NEXT_THEME_ID = id + 1;
     }
+
+    public static int getNextThemeId(){return NEXT_THEME_ID;}
 
     /**
      * Constructs an empty theme.
@@ -302,6 +304,27 @@ public class Theme extends HueElement
         if(bulbs == null || bulbs.containsKey(null) || bulbs.containsValue(null))
             return false;
         return true;
+    }
+
+    @Override
+    public String toString()
+    {
+        String str = "\nTheme: " + getId() + "   Name: "+ getName() + "\n\n" +
+                "Contains following Traits: \n\n\t\t";
+        for(Map.Entry<Integer, Trait> e: _traits.entrySet())
+        {
+            str += e.getValue().toString();
+        }
+
+        if(_themes.isEmpty())
+            return str;
+
+        str += "Contains following subgroups: \n\n\t\t";
+        for(Map.Entry<Integer,Theme> e: _themes.entrySet())
+        {
+            str += e.getValue().toString();
+        }
+        return str;
     }
 
     /**

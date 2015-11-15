@@ -8,10 +8,12 @@ import com.brightlightsystems.core.datastructure.DataManager;
 import com.brightlightsystems.core.datastructure.DatabaseManager;
 import com.brightlightsystems.core.datastructure.Group;
 import com.brightlightsystems.core.datastructure.Lightbulb;
+import com.brightlightsystems.core.datastructure.Theme;
 import com.brightlightsystems.core.datastructure.Trait;
 import com.brightlightsystems.core.utilities.notificationsystem.BulbMessage;
 import com.brightlightsystems.core.utilities.notificationsystem.GroupMessage;
 import com.brightlightsystems.core.utilities.notificationsystem.Publisher;
+import com.brightlightsystems.core.utilities.notificationsystem.ThemeMessage;
 
 import java.util.Map;
 
@@ -112,7 +114,50 @@ public abstract class DataStructureHelper
         }
     }
 
-    private void ThemeTest()
-    {}
+    public static void themeTest(DatabaseManager databaseManager)
+    {
+        //add new group
+        DataManager dm = DataManager.getInstance();
+        Theme theme = new Theme(Theme.getNextThemeId(),"Test theme",false,true);
+        Trait trait= new Trait(new BulbColor(125,125,125,100),50);
+        theme.addTrait(11, trait);
+        Theme subTheme = dm.getThemeMap().get(1);
+        theme.addTheme(subTheme);
+        Publisher.postThemeNotification(new ThemeMessage(ThemeMessage.MSG_ADD_THEME, theme));
+
+        printThemes("DataStructure", "ADDED THEME\n");
+        databaseManager.loadData();
+        printGroups("Database", "ADDED GROUP\n");
+
+        //update group
+        theme.removeTheme(1);
+        Publisher.postThemeNotification(new ThemeMessage(ThemeMessage.MSG_UPDATE_SINGLE_THEME,theme));
+        printThemes("DataStructure", "UPDATE THEME\n");
+        databaseManager.loadData();
+        printThemes("Database", "UPDATE THEME\n");
+
+        //remove bulb
+        Publisher.postThemeNotification(new ThemeMessage(ThemeMessage.MSG_REMOVE_THEME, theme));
+        printThemes("DataStructure", "REMOVED THEME\n");
+        databaseManager.loadData();
+        printThemes("Database", "REMOVED THEME\n");
+    }
+
+    public static void printThemes(String logTag, String caption)
+    {
+        Log.d(logTag,caption);
+        DataManager dm = DataManager.getInstance();
+
+        for(Map.Entry<Integer,Theme> entry: dm.getThemeMap().entrySet())
+        {
+            String print = "\nTHEMES: \n\n" + entry.getValue().toString() +"\n CONTAINS THEMES: "+
+                    "\n*****************************************************************************\n\n";
+            for(Theme value: dm.getThemeMap().get(entry.getKey()).getThemeCollection())
+            {
+                print+=value.toString() +"\n______________\n";
+            }
+            Log.d(logTag, print);
+        }
+    }
 
 }

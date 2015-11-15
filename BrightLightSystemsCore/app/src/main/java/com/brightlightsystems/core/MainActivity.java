@@ -25,7 +25,7 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        DataStructureHelper.groupTest(dm);
+        DataStructureHelper.themeTest(dm);
     }
 
 

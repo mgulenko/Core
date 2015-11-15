@@ -172,9 +172,17 @@ abstract class ThemesContract
             db.rawQuery(query,null);
             themeIds += (t.getId() + ",");
         }
-
         //remove old entries
         themeIds = themeIds.substring(0,themeIds.length() - 1);
+        if(themeIds.isEmpty())
+        {
+            String query  = "DELETE FROM " + SubThemeEntry.TABLE_NAME +
+                    " WHERE " + SubThemeEntry.COLUMN_NAME_THEME_ID + " = " + theme.getId();
+            db.rawQuery(query, null);
+            db.close();
+            return;
+        }
+
        String  query  = "DELETE FROM " + SubThemeEntry.TABLE_NAME +
                 " WHERE " + SubThemeEntry.COLUMN_NAME_THEME_ID + " = " + theme.getId()+
                 " AND " +
